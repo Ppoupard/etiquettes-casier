@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Étiquettes casiers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23c8102e'/%3E%3Crect x='12' y='20' width='40' height='24' rx='4' fill='%23fff'/%3E%3Crect x='12' y='20' width='40' height='8' rx='4' fill='%23c8102e' opacity='.35'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --accent:#c8102e; --accent-dark:#a50d25; --ink:#1b1b1f; --muted:#6b6b72; --line:#e2e2e8;
+    --bg:#eef0f4; --panel:#ffffff; --soft:#f6f6f9; --danger:#b3261e; --ok:#1d7a3e;
+    --font:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --label-font:"Segoe UI",Roboto,"Helvetica Neue",Arial,"Liberation Sans",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:var(--font);font-size:14px;color:var(--ink);background:var(--bg)}
+  button,input,select{font:inherit;color:inherit}
+  h1{font-size:16px;margin:0;line-height:1.2}
+  .app{display:flex;height:100vh;overflow:hidden}
+
+  /* ---------- Colonne de gauche ---------- */
+  .sidebar{width:390px;flex:0 0 390px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .sidebar-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .brand{width:36px;height:36px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .brand svg{width:22px;height:22px}
+  .sidebar-head small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .sidebar-body{flex:1;overflow:auto;min-height:0;padding-bottom:30px}
+  details.sec{border-bottom:1px solid var(--line)}
+  details.sec>summary{cursor:pointer;list-style:none;padding:13px 18px;font-weight:700;display:flex;align-items:center;gap:10px;user-select:none}
+  details.sec>summary::-webkit-details-marker{display:none}
+  details.sec>summary .num{width:22px;height:22px;border-radius:50%;background:var(--soft);color:var(--muted);font-size:12px;display:grid;place-items:center;flex:0 0 auto}
+  details.sec[open]>summary .num{background:var(--accent);color:#fff}
+  details.sec>summary .chev{margin-left:auto;color:var(--muted);transition:transform .15s}
+  details.sec[open]>summary .chev{transform:rotate(180deg)}
+  .sec-body{padding:2px 18px 16px}
+  .field{margin-bottom:10px}
+  .field>label,.lbl{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;min-width:0}
+  input[type=text]:focus,input[type=number]:focus,select:focus{outline:2px solid rgba(200,16,46,.25);border-color:var(--accent)}
+  input[type=color]{width:100%;height:36px;padding:2px 3px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .check{display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer}
+  .check input{width:16px;height:16px;accent-color:var(--accent);margin:0}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .btn:hover{background:var(--soft)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-dark)}
+  .btn.danger{color:var(--danger)}
+  .btn.danger:hover{background:#fbeceb}
+  .btn.sm{padding:5px 9px;font-size:12px}
+  .btn.block{width:100%;justify-content:center}
+  .hint{font-size:12px;color:var(--muted);line-height:1.45;margin:6px 0 0}
+  .swatches{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .sw{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+  .logo-row{display:flex;align-items:center;gap:10px}
+  .logo-thumb{width:52px;height:52px;border:1px dashed var(--line);border-radius:8px;background:var(--soft);display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
+  .logo-thumb img{max-width:100%;max-height:100%;object-fit:contain}
+  .logo-thumb span{font-size:11px;color:var(--muted)}
+  .warn{background:#fff4e5;border:1px solid #f5d1a3;color:#7a4a00;border-radius:8px;padding:8px 10px;font-size:12px;margin-top:8px;display:none}
+  .warn.show{display:block}
+
+  /* Formulaire d'ajout */
+  .addform{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--soft);padding:10px;border-radius:10px;border:1px solid var(--line)}
+  .addform .full{grid-column:1/-1}
+  .addform .row2{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+  .addform .row2 input{flex:1}
+  .tools{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+  .count{font-size:12px;color:var(--muted);margin:8px 0 4px;display:flex;justify-content:space-between;align-items:center}
+  .people{display:flex;flex-direction:column;gap:4px}
+  .prow{display:grid;grid-template-columns:22px 1fr 1fr 78px 26px;gap:5px;align-items:center}
+  .prow input{padding:6px 7px;font-size:13px;border-radius:6px}
+  .prow .mv{display:flex;flex-direction:column;gap:1px}
+  .prow .mv button{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:0;height:12px;line-height:12px;font-size:10px}
+  .prow .mv button:hover{color:var(--ink)}
+  .prow .del{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 2px;border-radius:6px}
+  .prow .del:hover{color:var(--danger);background:#fbeceb}
+  .prow .cathead{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .people-head{display:grid;grid-template-columns:22px 1fr 1fr 78px 26px;gap:5px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:0 0 2px}
+  .empty{font-size:13px;color:var(--muted);padding:12px;text-align:center;background:var(--soft);border-radius:8px;border:1px dashed var(--line)}
+  .tips{font-size:13px;line-height:1.5;margin:0;padding-left:18px}
+  .tips li{margin-bottom:4px}
+  kbd{font-family:inherit;font-size:12px;background:var(--soft);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
+
+  /* ---------- Aperçu ---------- */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+  .topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .stats{font-weight:600}
+  .stats small{color:var(--muted);font-weight:500;display:block;font-size:12px}
+  .zoom{margin-left:auto;display:flex;align-items:center;gap:4px}
+  .zoom .btn{padding:6px 9px}
+  .zoom .val{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+  .preview{flex:1;overflow:auto;min-height:0}
+  .pages{--s:1;display:flex;flex-direction:column;align-items:center;gap:22px;padding:22px}
+  .page-wrap{width:calc(210mm * var(--s));height:calc(297mm * var(--s));flex:0 0 auto;position:relative}
+  .page{width:210mm;height:297mm;background:#fff;position:relative;transform:scale(var(--s));transform-origin:0 0;box-shadow:0 2px 14px rgba(0,0,0,.14);overflow:hidden}
+  .page-tag{position:absolute;left:0;bottom:-18px;font-size:12px;color:var(--muted)}
+  .example-hint{position:absolute;left:50%;top:-4px;transform:translate(-50%,-100%);white-space:nowrap;font-size:12px;color:var(--muted)}
+  .pages.has-example{padding-top:34px}
+
+  /* Traits de coupe */
+  .cut{position:absolute;pointer-events:none;z-index:2}
+  .cut.v{border-left:.25mm dashed rgba(0,0,0,.42);width:0}
+  .cut.h{border-top:.25mm dashed rgba(0,0,0,.42);height:0}
+  .mark{position:absolute;background:#8d8d94;pointer-events:none;z-index:2}
+
+  /* ---------- Étiquette ---------- */
+  .lab{position:absolute;overflow:hidden;background:#fff;display:flex;flex-direction:column;font-family:var(--label-font);line-height:1;color:var(--nc)}
+  .lab.example{outline:.5mm dashed #c8c8cc;outline-offset:-.5mm}
+  .lab.lay-lateral{flex-direction:row}
+  .band{background:var(--c);color:var(--bt);display:flex;align-items:center;flex:0 0 auto;overflow:hidden;min-width:0}
+  .side{background:var(--c);color:var(--bt);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;text-align:center;overflow:hidden}
+  .logo{object-fit:contain;flex:0 0 auto;display:block}
+  .club{font-weight:800;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-transform:uppercase;min-width:0}
+  .side .club{white-space:normal;letter-spacing:.04em;line-height:1.15;overflow-wrap:anywhere}
+  .body{flex:1;display:flex;flex-direction:column;min-height:0;min-width:0}
+  .names{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+  .first{font-weight:600;white-space:nowrap;overflow:hidden;line-height:1.05;opacity:.82;margin-bottom:.12em}
+  .last{font-weight:900;white-space:nowrap;overflow:hidden;line-height:1.02;letter-spacing:.02em}
+  .catrow{flex:0 0 auto;text-align:right;line-height:1;min-width:0}
+  .cat{display:inline-block;background:var(--c);color:var(--bt);font-weight:700;letter-spacing:.03em;padding:.34em .85em;border-radius:99em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+  .stripe{background:var(--c);flex:0 0 auto}
+  .wl{border-bottom:.3mm dotted #b9b9bf;margin:0 0 .35em}
+  .lay-lateral .body{justify-content:center}
+  .lay-lateral .names{flex:0 0 auto}
+  .lay-lateral .catrow{text-align:left;margin-top:.5em}
+  .lay-plein{background:var(--c);color:var(--bt)}
+  .lay-plein .band{background:transparent;border-bottom:.3mm solid rgba(255,255,255,.55)}
+  .lay-plein .first{opacity:.9}
+  .lay-plein .cat{background:var(--bt);color:var(--c)}
+  .lay-plein .stripe{display:none}
+  .lay-plein .wl{border-color:rgba(255,255,255,.7)}
+  .page,.page *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ---------- Impression ---------- */
+  @page{size:A4 portrait;margin:0}
+  @media print{
+    html,body{height:auto;overflow:visible;background:#fff}
+    .app{display:block;height:auto;overflow:visible}
+    .sidebar,.topbar,.no-print,.page-tag,.example-hint{display:none!important}
+    .main{display:block;overflow:visible;height:auto}
+    .preview{overflow:visible;height:auto;padding:0}
+    .pages{--s:1!important;display:block;padding:0!important;gap:0}
+    .page-wrap{width:210mm;height:297mm;margin:0;page-break-after:always;break-after:page}
+    .page-wrap:last-child{page-break-after:auto;break-after:auto}
+    .page{transform:none!important;box-shadow:none}
+    .lab.example{outline:none}
+  }
+
+  /* ---------- Petit écran ---------- */
+  @media (max-width:900px){
+    .app{flex-direction:column;height:auto;overflow:visible}
+    .sidebar{width:auto;flex:none;border-right:0;border-bottom:1px solid var(--line)}
+    .sidebar-body{overflow:visible}
+    .main{min-height:60vh}
+    .preview{overflow:visible}
+    .topbar{position:sticky;top:0;z-index:5;flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ Colonne de gauche ============ -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div>
+        <h1>Étiquettes casiers</h1>
+        <small>Planches A4 à découper</small>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+
+      <!-- 1. Club -->
+      <details class="sec" open>
+        <summary><span class="num">1</span>Club et couleurs<span class="chev">▾</span></summary>
+        <div class="sec-body">
+          <div class="field">
+            <label for="clubName">Nom du club</label>
+            <input type="text" id="clubName" data-bind="club.name" placeholder="ASI Mûrs-Érigné">
+          </div>
+          <div class="field">
+            <span class="lbl">Logo du club</span>
+            <div class="logo-row">
+              <div class="logo-thumb" id="logoThumb"><span>Aucun</span></div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <button class="btn sm" type="button" id="btnLogo">Importer une image…</button>
+                <button class="btn sm danger" type="button" id="btnLogoRemove" style="display:none">Retirer le logo</button>
+              </div>
+              <input type="file" id="logoFile" accept="image/*" hidden>
+            </div>
+            <p class="hint">PNG avec fond transparent de préférence. L'image est réduite et enregistrée dans l'outil.</p>
+          </div>
+          <div class="grid3">
+            <div class="field">
+              <label for="cColor">Couleur principale</label>
+              <input type="color" id="cColor" data-bind="club.color">
+            </div>
+            <div class="field">
+              <label for="cBandText">Texte sur fond</label>
+              <input type="color" id="cBandText" data-bind="club.bandText">
+            </div>
+            <div class="field">
+              <label for="cName">Texte du nom</label>
+              <input type="color" id="cName" data-bind="club.nameColor">
+            </div>
+          </div>
+          <div class="swatches" id="swatches" title="Couleurs rapides"></div>
+        </div>
+      </details>
+
+      <!-- 2. Étiquette -->
+      <details class="sec" open>
+        <summary><span class="num">2</span>Taille et mise en page<span class="chev">▾</span></summary>
+        <div class="sec-body">
+          <div class="field">
+            <label for="preset">Taille de l'étiquette</label>
+            <select id="preset" data-bind="label.preset">
+              <option value="s">Petite — 63 × 38 mm (21 par page)</option>
+              <option value="m">Moyenne — 95 × 55 mm (10 par page)</option>
+              <option value="l">Grande — 95 × 69 mm (8 par page)</option>
+              <option value="band">Bande — 190 × 46 mm (6 par page)</option>
+              <option value="custom">Personnalisée</option>
+            </select>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="lw">Largeur (mm)</label>
+              <input type="number" id="lw" data-bind="label.w" min="20" max="200" step="1">
+            </div>
+            <div class="field">
+              <label for="lh">Hauteur (mm)</label>
+              <input type="number" id="lh" data-bind="label.h" min="15" max="287" step="1">
+            </div>
+            <div class="field">
+              <label for="lgap">Espace entre étiquettes (mm)</label>
+              <input type="number" id="lgap" data-bind="label.gap" min="0" max="30" step="1">
+            </div>
+            <div class="field">
+              <label for="lmargin">Marge de la page (mm)</label>
+              <input type="number" id="lmargin" data-bind="label.margin" min="0" max="40" step="1">
+            </div>
+          </div>
+          <div class="warn" id="warnFit"></div>
+          <div class="field" style="margin-top:6px">
+            <label for="layout">Disposition</label>
+            <select id="layout" data-bind="label.layout">
+              <option value="bandeau">Bandeau en haut (logo + club), nom en dessous</option>
+              <option value="lateral">Bande sur le côté (logo + club), nom à droite</option>
+              <option value="plein">Fond plein couleur, texte blanc</option>
+            </select>
+          </div>
+          <label class="check"><input type="checkbox" data-bind="label.upper"> Nom de famille en MAJUSCULES</label>
+          <label class="check"><input type="checkbox" data-bind="label.showClub"> Afficher le nom du club</label>
+          <label class="check"><input type="checkbox" data-bind="label.showLogo"> Afficher le logo</label>
+          <label class="check"><input type="checkbox" data-bind="label.showCat"> Afficher la catégorie / équipe</label>
+          <label class="check"><input type="checkbox" data-bind="label.cuts"> Traits de coupe</label>
+          <label class="check"><input type="checkbox" data-bind="label.pageByCat"> Nouvelle page à chaque catégorie</label>
+          <div class="field" style="margin-top:8px">
+            <label for="blank">Étiquettes vierges en plus (à remplir à la main)</label>
+            <input type="number" id="blank" data-bind="label.blank" min="0" max="200" step="1">
+          </div>
+        </div>
+      </details>
+
+      <!-- 3. Personnes -->
+      <details class="sec" open>
+        <summary><span class="num">3</span>Personnes<span class="chev">▾</span></summary>
+        <div class="sec-body">
+          <form class="addform" id="addForm" autocomplete="off">
+            <input type="text" id="inFirst" placeholder="Prénom" aria-label="Prénom">
+            <input type="text" id="inLast" placeholder="Nom" aria-label="Nom">
+            <div class="row2">
+              <input type="text" id="inCat" list="cats" placeholder="Catégorie / équipe (ex. U15F)" aria-label="Catégorie">
+              <button class="btn primary" type="submit">Ajouter</button>
+            </div>
+          </form>
+          <datalist id="cats"></datalist>
+          <p class="hint">Astuce : <kbd>Entrée</kbd> ajoute la personne et garde la catégorie pour la suivante.</p>
+          <div class="count"><span id="peopleCount">0 personne</span>
+            <span class="tools" style="margin:0">
+              <button class="btn sm" type="button" id="btnSortName" title="Trier par nom">A→Z</button>
+              <button class="btn sm" type="button" id="btnSortCat" title="Trier par catégorie puis nom">Par catégorie</button>
+              <button class="btn sm danger" type="button" id="btnClear">Vider</button>
+            </span>
+          </div>
+          <div class="people-head" id="peopleHead"><span></span><span>Prénom</span><span>Nom</span><span>Catég.</span><span></span></div>
+          <div class="people" id="people"></div>
+        </div>
+      </details>
+
+      <!-- 4. Sauvegarde -->
+      <details class="sec">
+        <summary><span class="num">4</span>Sauvegarde<span class="chev">▾</span></summary>
+        <div class="sec-body">
+          <p class="hint" style="margin:0 0 10px">Tout est enregistré automatiquement dans ce navigateur. Pour garder une copie ou passer sur un autre ordinateur, exporte un fichier.</p>
+          <div class="grid2">
+            <button class="btn block" type="button" id="btnExport">Exporter (.json)</button>
+            <button class="btn block" type="button" id="btnImport">Importer (.json)</button>
+          </div>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
+      </details>
+
+      <!-- 5. Conseils -->
+      <details class="sec">
+        <summary><span class="num">5</span>Conseils d'impression<span class="chev">▾</span></summary>
+        <div class="sec-body">
+          <ol class="tips">
+            <li>Clique sur <b>Imprimer / PDF</b> (ou <kbd>Ctrl</kbd> + <kbd>P</kbd>).</li>
+            <li>Format <b>A4</b>, orientation <b>portrait</b>, échelle <b>100 %</b>.</li>
+            <li>Marges : <b>Aucune</b> ou « Par défaut » — les étiquettes sont centrées avec la marge choisie ci-dessus.</li>
+            <li>Si le rouge ne sort pas, coche <b>« Graphiques d'arrière-plan »</b> dans les options.</li>
+            <li>Choisis « Enregistrer au format PDF » comme destination pour envoyer le fichier au club.</li>
+            <li>Imprime sur du papier épais (160–200 g) ou du papier autocollant, puis découpe en suivant les traits.</li>
+          </ol>
+        </div>
+      </details>
+
+    </div>
+  </aside>
+
+  <!-- ============ Aperçu ============ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="stats" id="stats">0 étiquette<small>—</small></div>
+      <div class="zoom">
+        <button class="btn" type="button" id="zoomOut" title="Réduire">−</button>
+        <span class="val" id="zoomVal">100%</span>
+        <button class="btn" type="button" id="zoomIn" title="Agrandir">+</button>
+        <button class="btn" type="button" id="zoomFit" title="Ajuster à la largeur">Ajuster</button>
+      </div>
+      <button class="btn primary" type="button" id="btnPrint">🖨 Imprimer / PDF</button>
+    </div>
+    <div class="preview" id="preview">
+      <div class="pages" id="pages"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------------- Données ---------------- */
+var LS_KEY = 'etiquettes-casiers-v1';
+var FAMILY = '"Segoe UI", Roboto, "Helvetica Neue", Arial, "Liberation Sans", sans-serif';
+var DEFAULT_CATS = ['U6','U7','U8','U9','U10','U11','U12','U13','U13F','U14','U15','U15F','U16','U17','U18','U18F','U19','Seniors','Seniors F','Vétérans','Loisirs','Éducateur','Éducatrice','Dirigeant','Dirigeante','Arbitre','Staff','Bénévole'];
+var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, band:{w:190,h:46} };
+var SWATCHES = ['#c8102e','#e30613','#0b3c8c','#1a7f3c','#f28c00','#111111','#6a1b9a','#00838f'];
+var DEFAULTS = {
+  club:{ name:'ASI Mûrs-Érigné', logo:null, color:'#c8102e', bandText:'#ffffff', nameColor:'#161616' },
+  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', upper:true, showClub:true, showLogo:true, showCat:true, pageByCat:false, blank:0 },
+  people:[]
+};
+
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function clamp(v,a,b){ return Math.min(b, Math.max(a, v)); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function num(v, d){ v = parseFloat(v); return isFinite(v) ? v : d; }
+function upperFr(s){ return String(s).toLocaleUpperCase('fr'); }
+function cap(s){
+  s = String(s || '').trim().replace(/\s+/g,' ');
+  return s.split(' ').map(function(w){
+    return w.split('-').map(function(p){ return p ? p.charAt(0).toLocaleUpperCase('fr') + p.slice(1) : p; }).join('-');
+  }).join(' ');
+}
+
+function merge(def, obj){
+  var out = JSON.parse(JSON.stringify(def));
+  if (!obj || typeof obj !== 'object') return out;
+  if (obj.club && typeof obj.club === 'object') for (var k in out.club) if (k in obj.club) out.club[k] = obj.club[k];
+  if (obj.label && typeof obj.label === 'object') for (var j in out.label) if (j in obj.label) out.label[j] = obj.label[j];
+  if (Array.isArray(obj.people)) out.people = obj.people.filter(function(p){ return p && typeof p === 'object'; })
+    .map(function(p){ return { id: String(p.id || uid()), first: String(p.first || ''), last: String(p.last || ''), cat: String(p.cat || '') }; });
+  /* garde-fous */
+  out.club.name = String(out.club.name || '');
+  out.label.w = clamp(num(out.label.w, 95), 20, 200);
+  out.label.h = clamp(num(out.label.h, 55), 15, 287);
+  out.label.gap = clamp(num(out.label.gap, 0), 0, 30);
+  out.label.margin = clamp(num(out.label.margin, 10), 0, 40);
+  out.label.blank = clamp(Math.round(num(out.label.blank, 0)), 0, 200);
+  if (!/^(bandeau|lateral|plein)$/.test(out.label.layout)) out.label.layout = 'bandeau';
+  if (!(out.label.preset in PRESETS) && out.label.preset !== 'custom') out.label.preset = 'custom';
+  return out;
+}
+function load(){
+  try { var raw = localStorage.getItem(LS_KEY); if (raw) return merge(DEFAULTS, JSON.parse(raw)); } catch(e){}
+  return merge(DEFAULTS, null);
+}
+var saveTimer = null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){ try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} }, 150);
+}
+var state = load();
+
+/* ---------------- Mesure de texte ---------------- */
+var mctx = document.createElement('canvas').getContext('2d');
+function textEm(text, weight, ls){
+  mctx.font = weight + ' 100px ' + FAMILY;
+  var w = mctx.measureText(text).width / 100;
+  return w + (ls || 0) * Math.max(0, text.length - 1);
+}
+/* Taille de police (mm) la plus grande possible pour que `text` tienne dans `availMm` */
+function fitFont(text, maxMm, availMm, weight, ls, minMm){
+  if (!text) return maxMm;
+  var em = textEm(text, weight, ls);
+  if (em <= 0) return maxMm;
+  return Math.max(minMm || 2.2, Math.min(maxMm, availMm / (em * 1.03)));
+}
+
+/* ---------------- Grille de la page ---------------- */
+function grid(){
+  var L = state.label, w = L.w, h = L.h, g = L.gap, m = L.margin;
+  var uw = 210 - 2*m, uh = 297 - 2*m;
+  var cols = Math.max(1, Math.floor((uw + g) / (w + g)));
+  var rows = Math.max(1, Math.floor((uh + g) / (h + g)));
+  var blockW = cols*w + (cols-1)*g, blockH = rows*h + (rows-1)*g;
+  return { cols:cols, rows:rows, perPage:cols*rows, ox:(210-blockW)/2, oy:(297-blockH)/2, blockW:blockW, blockH:blockH, fits:(w <= uw && h <= uh), uw:uw, uh:uh };
+}
+
+function catKey(c){ return String(c || '').trim().toLocaleLowerCase('fr'); }
+function cmpCat(a, b){ return catKey(a).localeCompare(catKey(b), 'fr', { numeric:true, sensitivity:'base' }); }
+function cmpName(a, b){
+  var r = String(a.last||'').localeCompare(String(b.last||''), 'fr', { sensitivity:'base' });
+  return r || String(a.first||'').localeCompare(String(b.first||''), 'fr', { sensitivity:'base' });
+}
+
+/* Liste des étiquettes à imprimer (personnes + vierges) */
+function items(){
+  var list = state.people.filter(function(p){ return (String(p.first||'') + String(p.last||'') + String(p.cat||'')).trim() !== ''; });
+  var arr = list.map(function(p){ return { first:p.first, last:p.last, cat:p.cat }; });
+  if (state.label.pageByCat) {
+    arr = arr.map(function(p, i){ return { p:p, i:i }; })
+      .sort(function(a, b){ return cmpCat(a.p.cat, b.p.cat) || (a.i - b.i); })
+      .map(function(x){ return x.p; });
+  }
+  for (var i = 0; i < state.label.blank; i++) arr.push({ blank:true });
+  var example = false;
+  if (arr.length === 0) { arr.push({ first:'Prénom', last:'Nom', cat:'U15F', example:true }); example = true; }
+  return { list:arr, example:example };
+}
+
+function paginate(list, perPage){
+  var pages = [], cur = [], lastCat = null, byCat = state.label.pageByCat;
+  list.forEach(function(it){
+    var k = it.blank ? ' blank' : catKey(it.cat);
+    if (cur.length >= perPage || (byCat && lastCat !== null && k !== lastCat && cur.length > 0)) { pages.push(cur); cur = []; }
+    cur.push(it); lastCat = k;
+  });
+  if (cur.length) pages.push(cur);
+  if (!pages.length) pages.push([]);
+  return pages;
+}
+
+/* ---------------- Rendu d'une étiquette ---------------- */
+function labelHTML(it, x, y){
+  var L = state.label, C = state.club, W = L.w, H = L.h;
+  var blank = !!it.blank;
+  var first = blank ? '' : String(it.first || '').trim();
+  var last = blank ? '' : String(it.last || '').trim();
+  if (L.upper) last = upperFr(last);
+  var cat = (blank || !L.showCat) ? '' : String(it.cat || '').trim();
+  var clubTxt = L.showClub ? upperFr(String(C.name || '').trim()) : '';
+  var logo = (L.showLogo && C.logo) ? C.logo : null;
+  var pad = clamp(Math.min(W, H) * 0.065, 1.5, 5);
+  var cls = ['lab', 'lay-' + L.layout];
+  if (blank) cls.push('blank');
+  if (it.example) cls.push('example');
+  var style = 'left:' + x.toFixed(3) + 'mm;top:' + y.toFixed(3) + 'mm;width:' + W + 'mm;height:' + H + 'mm;--c:' + esc(C.color) + ';--bt:' + esc(C.bandText) + ';--nc:' + esc(C.nameColor);
+  var inner = '', contentW, firstFont, lastFont, catFont, namesHTML, catHTML;
+
+  function names(fMax, lMax){
+    firstFont = fitFont(first, fMax, contentW, 600, 0);
+    lastFont = fitFont(last, lMax, contentW, 900, 0.02);
+    catFont = fitFont(cat, H * 0.10, contentW * 0.92, 700, 0.03);
+    if (blank) {
+      namesHTML = '<div class="names">' +
+        '<div class="wl" style="height:' + (fMax*1.1).toFixed(2) + 'mm"></div>' +
+        '<div class="wl" style="height:' + (lMax*1.05).toFixed(2) + 'mm"></div></div>';
+    } else {
+      namesHTML = '<div class="names">' +
+        (first ? '<div class="first" style="font-size:' + firstFont.toFixed(2) + 'mm">' + esc(first) + '</div>' : '') +
+        (last ? '<div class="last" style="font-size:' + lastFont.toFixed(2) + 'mm">' + esc(last) + '</div>' : '') +
+        '</div>';
+    }
+    catHTML = cat ? '<div class="catrow"><span class="cat" style="font-size:' + catFont.toFixed(2) + 'mm">' + esc(cat) + '</span></div>' : '';
+  }
+
+  if (L.layout === 'lateral') {
+    var side = clamp(W * 0.28, 12, Math.max(12, Math.min(H, W * 0.45)));
+    var logoS = Math.max(4, Math.min(side - 2*pad, H * 0.42));
+    var words = clubTxt.split(/[\s\-‑]+/), longest = words.reduce(function(a, b){ return textEm(b, 800, 0.04) > textEm(a, 800, 0.04) ? b : a; }, '');
+    var clubFont = fitFont(longest, clamp(H * 0.075, 2, 6), side - 2*pad, 800, 0.04);
+    contentW = W - side - 2*pad;
+    names(H * 0.15, H * 0.26);
+    inner = '<div class="side" style="width:' + side.toFixed(2) + 'mm;padding:' + pad.toFixed(2) + 'mm ' + (pad*0.6).toFixed(2) + 'mm;gap:' + (pad*0.6).toFixed(2) + 'mm">' +
+        (logo ? '<img class="logo" src="' + logo + '" alt="" style="width:' + logoS.toFixed(2) + 'mm;height:' + logoS.toFixed(2) + 'mm">' : '') +
+        (clubTxt ? '<div class="club" style="font-size:' + clubFont.toFixed(2) + 'mm">' + esc(clubTxt) + '</div>' : '') +
+      '</div>' +
+      '<div class="body" style="padding:' + pad.toFixed(2) + 'mm">' + namesHTML + catHTML + '</div>';
+  } else {
+    var hasHead = !!(clubTxt || logo);
+    var bandH = hasHead ? clamp(H * 0.26, 7, 40) : clamp(H * 0.09, 2, 8);
+    var logoS2 = bandH * 0.74;
+    var clubAvail = W - 2*pad - (logo ? logoS2 + pad*0.7 : 0);
+    var clubFont2 = fitFont(clubTxt, bandH * 0.38, clubAvail, 800, 0.05);
+    contentW = W - 2*pad;
+    names(H * 0.14, H * 0.24);
+    var stripe = clamp(H * 0.035, 1, 3);
+    inner = '<div class="band" style="height:' + bandH.toFixed(2) + 'mm;padding:0 ' + pad.toFixed(2) + 'mm;gap:' + (pad*0.7).toFixed(2) + 'mm">' +
+        (logo ? '<img class="logo" src="' + logo + '" alt="" style="width:' + logoS2.toFixed(2) + 'mm;height:' + logoS2.toFixed(2) + 'mm">' : '') +
+        (clubTxt ? '<div class="club" style="font-size:' + clubFont2.toFixed(2) + 'mm">' + esc(clubTxt) + '</div>' : '') +
+      '</div>' +
+      '<div class="body" style="padding:' + (pad*0.8).toFixed(2) + 'mm ' + pad.toFixed(2) + 'mm">' + namesHTML + catHTML + '</div>' +
+      '<div class="stripe" style="height:' + stripe.toFixed(2) + 'mm"></div>';
+  }
+  return '<div class="' + cls.join(' ') + '" style="' + style + '">' + inner + '</div>';
+}
+
+/* Traits de coupe d'une page */
+function cutsHTML(g, count){
+  var L = state.label, w = L.w, h = L.h, gap = L.gap, out = '';
+  var ext = 4; /* dépassement des traits hors du bloc, en mm */
+  if (gap <= 0) {
+    var x0 = g.ox - ext, x1 = g.ox + g.blockW + ext, y0 = g.oy - ext, y1 = g.oy + g.blockH + ext;
+    var rowsUsed = Math.min(g.rows, Math.ceil(count / g.cols)), colsUsed = Math.min(g.cols, count);
+    var yEnd = g.oy + rowsUsed * h;
+    var xEnd = g.ox + colsUsed * w;
+    for (var c = 0; c <= colsUsed; c++) {
+      var x = g.ox + c*w;
+      out += '<div class="cut v" style="left:' + x.toFixed(3) + 'mm;top:' + Math.max(0, y0).toFixed(3) + 'mm;height:' + (Math.min(297, yEnd + ext) - Math.max(0, y0)).toFixed(3) + 'mm"></div>';
+    }
+    for (var r = 0; r <= rowsUsed; r++) {
+      var y = g.oy + r*h;
+      out += '<div class="cut h" style="top:' + y.toFixed(3) + 'mm;left:' + Math.max(0, x0).toFixed(3) + 'mm;width:' + (Math.min(210, xEnd + ext) - Math.max(0, x0)).toFixed(3) + 'mm"></div>';
+    }
+  } else {
+    var len = Math.min(3, Math.max(1.5, gap * 0.7)), t = 0.25;
+    for (var i = 0; i < count; i++) {
+      var cc = i % g.cols, rr = Math.floor(i / g.cols);
+      var lx = g.ox + cc*(w+gap), ty = g.oy + rr*(h+gap), rx = lx + w, by = ty + h;
+      var corners = [[lx,ty,-1,-1],[rx,ty,1,-1],[lx,by,-1,1],[rx,by,1,1]];
+      corners.forEach(function(k){
+        var cx = k[0], cy = k[1], dx = k[2], dy = k[3];
+        /* trait horizontal */
+        out += '<div class="mark" style="left:' + (dx < 0 ? cx - len : cx).toFixed(3) + 'mm;top:' + (cy - t/2).toFixed(3) + 'mm;width:' + len + 'mm;height:' + t + 'mm"></div>';
+        /* trait vertical */
+        out += '<div class="mark" style="left:' + (cx - t/2).toFixed(3) + 'mm;top:' + (dy < 0 ? cy - len : cy).toFixed(3) + 'mm;width:' + t + 'mm;height:' + len + 'mm"></div>';
+      });
+    }
+  }
+  return out;
+}
+
+/* ---------------- Rendu des pages ---------------- */
+var renderTimer = null;
+function scheduleRender(){ clearTimeout(renderTimer); renderTimer = setTimeout(render, 40); }
+
+function render(){
+  var g = grid(), L = state.label;
+  var its = items(), list = its.list;
+  var pages = paginate(list, g.perPage);
+  var wrap = document.getElementById('pages');
+  var html = '';
+  pages.forEach(function(p, pi){
+    html += '<div class="page-wrap"><div class="page">';
+    if (L.cuts) html += cutsHTML(g, p.length);
+    p.forEach(function(it, i){
+      var c = i % g.cols, r = Math.floor(i / g.cols);
+      html += labelHTML(it, g.ox + c*(L.w + L.gap), g.oy + r*(L.h + L.gap));
+    });
+    html += '</div><div class="page-tag">Page ' + (pi+1) + ' / ' + pages.length + '</div>';
+    if (its.example && pi === 0) html += '<div class="example-hint">Aperçu avec un exemple — ajoute des personnes dans la colonne de gauche</div>';
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
+  wrap.classList.toggle('has-example', its.example);
+
+  var n = its.example ? 0 : list.length;
+  var stats = document.getElementById('stats');
+  stats.innerHTML = esc(n + (n > 1 ? ' étiquettes' : ' étiquette')) +
+    '<small>' + esc((its.example ? 1 : pages.length) + (pages.length > 1 && !its.example ? ' pages' : ' page') + ' · ' + g.perPage + ' par page (' + g.cols + ' × ' + g.rows + ')') + '</small>';
+
+  var warn = document.getElementById('warnFit');
+  if (!g.fits) { warn.textContent = 'L’étiquette (' + L.w + ' × ' + L.h + ' mm) dépasse la zone imprimable (' + g.uw + ' × ' + g.uh + ' mm avec cette marge).'; warn.classList.add('show'); }
+  else warn.classList.remove('show');
+
+  applyZoom();
+}
+
+/* ---------------- Zoom ---------------- */
+var zoom = { mode:'fit', s:1 };
+function applyZoom(){
+  var pv = document.getElementById('preview');
+  var pxPerMm = 96 / 25.4;
+  if (zoom.mode === 'fit') zoom.s = clamp((pv.clientWidth - 48) / (210 * pxPerMm), 0.15, 1);
+  document.getElementById('pages').style.setProperty('--s', zoom.s.toFixed(4));
+  document.getElementById('zoomVal').textContent = Math.round(zoom.s * 100) + '%';
+}
+document.getElementById('zoomOut').addEventListener('click', function(){ zoom.mode = 'manual'; zoom.s = clamp(zoom.s - 0.1, 0.15, 2); applyZoom(); });
+document.getElementById('zoomIn').addEventListener('click', function(){ zoom.mode = 'manual'; zoom.s = clamp(zoom.s + 0.1, 0.15, 2); applyZoom(); });
+document.getElementById('zoomFit').addEventListener('click', function(){ zoom.mode = 'fit'; applyZoom(); });
+window.addEventListener('resize', function(){ if (zoom.mode === 'fit') applyZoom(); });
+
+/* ---------------- Liaison des réglages ---------------- */
+var bound = document.querySelectorAll('[data-bind]');
+function refreshBound(){
+  bound.forEach(function(el){
+    var p = el.dataset.bind.split('.'), v = state[p[0]][p[1]];
+    if (el.type === 'checkbox') el.checked = !!v;
+    else if (document.activeElement !== el) el.value = v;
+  });
+}
+bound.forEach(function(el){
+  var p = el.dataset.bind.split('.');
+  var evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+  el.addEventListener(evt, function(){
+    var v;
+    if (el.type === 'checkbox') v = el.checked;
+    else if (el.type === 'number') { v = parseFloat(el.value); if (!isFinite(v)) return; v = clamp(v, num(el.min, -1e9), num(el.max, 1e9)); }
+    else v = el.value;
+    state[p[0]][p[1]] = v;
+    onSetting(el.dataset.bind);
+    save(); scheduleRender();
+  });
+  if (el.type === 'number') el.addEventListener('blur', refreshBound);
+});
+function onSetting(key){
+  if (key === 'label.preset') {
+    var pr = PRESETS[state.label.preset];
+    if (pr) { state.label.w = pr.w; state.label.h = pr.h; state.label.gap = 0; }
+    refreshBound();
+  } else if (key === 'label.w' || key === 'label.h') {
+    var match = null;
+    for (var k in PRESETS) if (PRESETS[k].w === state.label.w && PRESETS[k].h === state.label.h) match = k;
+    state.label.preset = match || 'custom';
+    document.getElementById('preset').value = state.label.preset;
+  }
+}
+
+/* Couleurs rapides */
+var sw = document.getElementById('swatches');
+SWATCHES.forEach(function(c){
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'sw'; b.style.background = c; b.title = c;
+  b.addEventListener('click', function(){ state.club.color = c; refreshBound(); save(); scheduleRender(); });
+  sw.appendChild(b);
+});
+
+/* Logo */
+var logoFile = document.getElementById('logoFile');
+document.getElementById('btnLogo').addEventListener('click', function(){ logoFile.value = ''; logoFile.click(); });
+logoFile.addEventListener('change', function(){
+  var f = logoFile.files && logoFile.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var max = 600, sc = Math.min(1, max / Math.max(img.width, img.height));
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(img.width * sc)); cv.height = Math.max(1, Math.round(img.height * sc));
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      state.club.logo = cv.toDataURL('image/png');
+      refreshLogo(); save(); scheduleRender();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+});
+document.getElementById('btnLogoRemove').addEventListener('click', function(){ state.club.logo = null; refreshLogo(); save(); scheduleRender(); });
+function refreshLogo(){
+  var t = document.getElementById('logoThumb');
+  t.innerHTML = state.club.logo ? '<img src="' + state.club.logo + '" alt="Logo">' : '<span>Aucun</span>';
+  document.getElementById('btnLogoRemove').style.display = state.club.logo ? '' : 'none';
+}
+
+/* ---------------- Personnes ---------------- */
+var inFirst = document.getElementById('inFirst'), inLast = document.getElementById('inLast'), inCat = document.getElementById('inCat');
+document.getElementById('addForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var first = cap(inFirst.value), last = inLast.value.trim().replace(/\s+/g,' '), cat = inCat.value.trim();
+  if (!first && !last) { inFirst.focus(); return; }
+  state.people.push({ id:uid(), first:first, last:last, cat:cat });
+  inFirst.value = ''; inLast.value = '';
+  inFirst.focus();
+  refreshCats(); renderPeople(); save(); scheduleRender();
+});
+
+function refreshCats(){
+  var used = {};
+  state.people.forEach(function(p){ var c = String(p.cat || '').trim(); if (c) used[c] = true; });
+  var all = DEFAULT_CATS.slice();
+  Object.keys(used).forEach(function(c){ if (all.indexOf(c) < 0) all.push(c); });
+  document.getElementById('cats').innerHTML = all.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
+}
+
+function renderPeople(){
+  var box = document.getElementById('people');
+  var n = state.people.length;
+  document.getElementById('peopleCount').textContent = n + (n > 1 ? ' personnes' : ' personne');
+  document.getElementById('peopleHead').style.display = n ? '' : 'none';
+  if (!n) { box.innerHTML = '<div class="empty">Aucune personne pour l’instant. Remplis le formulaire ci-dessus.</div>'; return; }
+  box.innerHTML = state.people.map(function(p, i){
+    return '<div class="prow" data-id="' + esc(p.id) + '">' +
+      '<div class="mv"><button type="button" data-act="up" title="Monter"' + (i === 0 ? ' disabled' : '') + '>▲</button><button type="button" data-act="down" title="Descendre"' + (i === n-1 ? ' disabled' : '') + '>▼</button></div>' +
+      '<input type="text" data-f="first" value="' + esc(p.first) + '" placeholder="Prénom" aria-label="Prénom">' +
+      '<input type="text" data-f="last" value="' + esc(p.last) + '" placeholder="Nom" aria-label="Nom">' +
+      '<input type="text" data-f="cat" list="cats" value="' + esc(p.cat) + '" placeholder="Catég." aria-label="Catégorie">' +
+      '<button type="button" class="del" data-act="del" title="Supprimer">×</button>' +
+    '</div>';
+  }).join('');
+}
+var peopleBox = document.getElementById('people');
+peopleBox.addEventListener('input', function(e){
+  var row = e.target.closest('.prow'); if (!row || !e.target.dataset.f) return;
+  var p = state.people.find(function(x){ return x.id === row.dataset.id; }); if (!p) return;
+  p[e.target.dataset.f] = e.target.value;
+  save(); scheduleRender();
+});
+peopleBox.addEventListener('change', function(e){ if (e.target.dataset.f === 'cat') refreshCats(); });
+peopleBox.addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-act]'); if (!btn) return;
+  var row = btn.closest('.prow'), idx = state.people.findIndex(function(x){ return x.id === row.dataset.id; }); if (idx < 0) return;
+  var act = btn.dataset.act;
+  if (act === 'del') state.people.splice(idx, 1);
+  else if (act === 'up' && idx > 0) { var a = state.people[idx-1]; state.people[idx-1] = state.people[idx]; state.people[idx] = a; }
+  else if (act === 'down' && idx < state.people.length - 1) { var b = state.people[idx+1]; state.people[idx+1] = state.people[idx]; state.people[idx] = b; }
+  renderPeople(); refreshCats(); save(); scheduleRender();
+});
+document.getElementById('btnSortName').addEventListener('click', function(){ state.people.sort(cmpName); renderPeople(); save(); scheduleRender(); });
+document.getElementById('btnSortCat').addEventListener('click', function(){ state.people.sort(function(a, b){ return cmpCat(a.cat, b.cat) || cmpName(a, b); }); renderPeople(); save(); scheduleRender(); });
+var clearBtn = document.getElementById('btnClear'), clearArmed = null;
+clearBtn.addEventListener('click', function(){
+  if (!clearArmed) { clearBtn.textContent = 'Confirmer ?'; clearArmed = setTimeout(function(){ clearBtn.textContent = 'Vider'; clearArmed = null; }, 3000); return; }
+  clearTimeout(clearArmed); clearArmed = null; clearBtn.textContent = 'Vider';
+  state.people = []; renderPeople(); refreshCats(); save(); scheduleRender();
+});
+
+/* ---------------- Export / import ---------------- */
+document.getElementById('btnExport').addEventListener('click', function(){
+  var d = new Date(), stamp = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'etiquettes-casiers-' + stamp + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+});
+var importFile = document.getElementById('importFile');
+document.getElementById('btnImport').addEventListener('click', function(){ importFile.value = ''; importFile.click(); });
+importFile.addEventListener('change', function(){
+  var f = importFile.files && importFile.files[0]; if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try {
+      var obj = JSON.parse(reader.result);
+      state = merge(DEFAULTS, obj);
+      refreshBound(); refreshLogo(); refreshCats(); renderPeople(); save(); scheduleRender();
+    } catch(e) { alert('Ce fichier n’est pas un export valide de l’outil.'); }
+  };
+  reader.readAsText(f);
+});
+
+/* ---------------- Impression ---------------- */
+document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
+
+/* ---------------- Démarrage ---------------- */
+refreshBound(); refreshLogo(); refreshCats(); renderPeople(); render();
+})();
+</script>
+</body>
+</html>
