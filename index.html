@@ -69,7 +69,7 @@
   .tools{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
   .count{font-size:12px;color:var(--muted);margin:8px 0 4px;display:flex;justify-content:space-between;align-items:center}
   .people{display:flex;flex-direction:column;gap:4px}
-  .prow{display:grid;grid-template-columns:22px 1fr 1fr 78px 26px;gap:5px;align-items:center}
+  .prow{display:grid;grid-template-columns:22px 1fr 1fr 1.3fr 26px;gap:5px;align-items:center}
   .prow input{padding:6px 7px;font-size:13px;border-radius:6px}
   .prow .mv{display:flex;flex-direction:column;gap:1px}
   .prow .mv button{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:0;height:12px;line-height:12px;font-size:10px}
@@ -77,7 +77,13 @@
   .prow .del{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 2px;border-radius:6px}
   .prow .del:hover{color:var(--danger);background:#fbeceb}
   .prow .cathead{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .people-head{display:grid;grid-template-columns:22px 1fr 1fr 78px 26px;gap:5px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:0 0 2px}
+  .people-head{display:grid;grid-template-columns:22px 1fr 1fr 1.3fr 26px;gap:5px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:0 0 2px}
+  details.sub{margin-top:8px;border:1px solid var(--line);border-radius:8px;padding:0 10px}
+  details.sub>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:8px 0;user-select:none}
+  details.sub[open]>summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+  details.sub .hint{margin-bottom:10px}
+  textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;line-height:1.4;resize:vertical;min-height:80px}
+  textarea:focus{outline:2px solid rgba(200,16,46,.25);border-color:var(--accent)}
   .empty{font-size:13px;color:var(--muted);padding:12px;text-align:center;background:var(--soft);border-radius:8px;border:1px dashed var(--line)}
   .tips{font-size:13px;line-height:1.5;margin:0;padding-left:18px}
   .tips li{margin-bottom:4px}
@@ -129,6 +135,8 @@
   .lay-plein .band{background:transparent;border-bottom:.3mm solid rgba(255,255,255,.55)}
   .lay-plein .first{opacity:.9}
   .lay-plein .cat{background:var(--bt);color:var(--c)}
+  .cs-text .cat{background:transparent!important;color:var(--c);padding:0;border-radius:0;font-weight:800;letter-spacing:.04em;line-height:1.15}
+  .lay-plein.cs-text .cat{color:var(--bt)}
   .lay-plein .stripe{display:none}
   .lay-plein .wl{border-color:rgba(255,255,255,.7)}
   .page,.page *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -255,6 +263,13 @@
               <option value="plein">Fond plein couleur, texte blanc</option>
             </select>
           </div>
+          <div class="field">
+            <label for="catStyle">Affichage de la catégorie</label>
+            <select id="catStyle" data-bind="label.catStyle">
+              <option value="pill">Pastille colorée</option>
+              <option value="text">Texte simple, sans fond</option>
+            </select>
+          </div>
           <label class="check"><input type="checkbox" data-bind="label.upper"> Nom de famille en MAJUSCULES</label>
           <label class="check"><input type="checkbox" data-bind="label.showClub"> Afficher le nom du club</label>
           <label class="check"><input type="checkbox" data-bind="label.showLogo"> Afficher le logo</label>
@@ -276,12 +291,18 @@
             <input type="text" id="inFirst" placeholder="Prénom" aria-label="Prénom">
             <input type="text" id="inLast" placeholder="Nom" aria-label="Nom">
             <div class="row2">
-              <input type="text" id="inCat" list="cats" placeholder="Catégorie / équipe (ex. U15F)" aria-label="Catégorie">
+              <input type="text" id="inCat" list="cats" placeholder="Catégorie, équipe, rôle… (libre)" aria-label="Catégorie">
               <button class="btn primary" type="submit">Ajouter</button>
             </div>
           </form>
           <datalist id="cats"></datalist>
-          <p class="hint">Astuce : <kbd>Entrée</kbd> ajoute la personne et garde la catégorie pour la suivante.</p>
+          <p class="hint">Le champ catégorie est <b>libre</b> : U15F, Éducateur U11, Gardiens, Bureau, Casier n° 12… Le menu ne fait que proposer. <kbd>Entrée</kbd> ajoute la personne et garde la catégorie pour la suivante.</p>
+          <details class="sub">
+            <summary>Suggestions du menu « catégorie »</summary>
+            <textarea id="catsList" rows="6" spellcheck="false" aria-label="Suggestions, une par ligne"></textarea>
+            <div class="tools" style="margin:6px 0 0"><button class="btn sm" type="button" id="btnCatsReset">Remettre la liste par défaut</button></div>
+            <p class="hint">Une suggestion par ligne : mets ici tes équipes et tes rôles pour aller plus vite. Les catégories déjà utilisées dans la liste sont proposées automatiquement.</p>
+          </details>
           <div class="count"><span id="peopleCount">0 personne</span>
             <span class="tools" style="margin:0">
               <button class="btn sm" type="button" id="btnSortName" title="Trier par nom">A→Z</button>
@@ -289,7 +310,7 @@
               <button class="btn sm danger" type="button" id="btnClear">Vider</button>
             </span>
           </div>
-          <div class="people-head" id="peopleHead"><span></span><span>Prénom</span><span>Nom</span><span>Catég.</span><span></span></div>
+          <div class="people-head" id="peopleHead"><span></span><span>Prénom</span><span>Nom</span><span>Catégorie</span><span></span></div>
           <div class="people" id="people"></div>
         </div>
       </details>
@@ -355,7 +376,8 @@ var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, band:{w:190,h:46} }
 var SWATCHES = ['#c8102e','#e30613','#0b3c8c','#1a7f3c','#f28c00','#111111','#6a1b9a','#00838f'];
 var DEFAULTS = {
   club:{ name:'ASI Mûrs-Érigné', logo:null, color:'#c8102e', bandText:'#ffffff', nameColor:'#161616' },
-  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', upper:true, showClub:true, showLogo:true, showCat:true, pageByCat:false, blank:0 },
+  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', upper:true, showClub:true, showLogo:true, showCat:true, pageByCat:false, blank:0 },
+  cats: DEFAULT_CATS.slice(),
   people:[]
 };
 
@@ -378,6 +400,7 @@ function merge(def, obj){
   if (obj.label && typeof obj.label === 'object') for (var j in out.label) if (j in obj.label) out.label[j] = obj.label[j];
   if (Array.isArray(obj.people)) out.people = obj.people.filter(function(p){ return p && typeof p === 'object'; })
     .map(function(p){ return { id: String(p.id || uid()), first: String(p.first || ''), last: String(p.last || ''), cat: String(p.cat || '') }; });
+  if (Array.isArray(obj.cats)) out.cats = obj.cats.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
   /* garde-fous */
   out.club.name = String(out.club.name || '');
   out.label.w = clamp(num(out.label.w, 95), 20, 200);
@@ -386,6 +409,7 @@ function merge(def, obj){
   out.label.margin = clamp(num(out.label.margin, 10), 0, 40);
   out.label.blank = clamp(Math.round(num(out.label.blank, 0)), 0, 200);
   if (!/^(bandeau|lateral|plein)$/.test(out.label.layout)) out.label.layout = 'bandeau';
+  if (!/^(pill|text)$/.test(out.label.catStyle)) out.label.catStyle = 'pill';
   if (!(out.label.preset in PRESETS) && out.label.preset !== 'custom') out.label.preset = 'custom';
   return out;
 }
@@ -470,7 +494,7 @@ function labelHTML(it, x, y){
   var clubTxt = L.showClub ? upperFr(String(C.name || '').trim()) : '';
   var logo = (L.showLogo && C.logo) ? C.logo : null;
   var pad = clamp(Math.min(W, H) * 0.065, 1.5, 5);
-  var cls = ['lab', 'lay-' + L.layout];
+  var cls = ['lab', 'lay-' + L.layout, 'cs-' + L.catStyle];
   if (blank) cls.push('blank');
   if (it.example) cls.push('example');
   var style = 'left:' + x.toFixed(3) + 'mm;top:' + y.toFixed(3) + 'mm;width:' + W + 'mm;height:' + H + 'mm;--c:' + esc(C.color) + ';--bt:' + esc(C.bandText) + ';--nc:' + esc(C.nameColor);
@@ -479,7 +503,9 @@ function labelHTML(it, x, y){
   function names(fMax, lMax){
     firstFont = fitFont(first, fMax, contentW, 600, 0);
     lastFont = fitFont(last, lMax, contentW, 900, 0.02);
-    catFont = fitFont(cat, H * 0.10, contentW * 0.92, 700, 0.03);
+    catFont = (L.catStyle === 'text')
+      ? fitFont(cat, H * 0.105, contentW, 800, 0.04, 2.6)
+      : fitFont(cat, H * 0.10, contentW * 0.92, 700, 0.03, 2.6);
     if (blank) {
       namesHTML = '<div class="names">' +
         '<div class="wl" style="height:' + (fMax*1.1).toFixed(2) + 'mm"></div>' +
@@ -695,12 +721,21 @@ document.getElementById('addForm').addEventListener('submit', function(e){
 });
 
 function refreshCats(){
-  var used = {};
-  state.people.forEach(function(p){ var c = String(p.cat || '').trim(); if (c) used[c] = true; });
-  var all = DEFAULT_CATS.slice();
-  Object.keys(used).forEach(function(c){ if (all.indexOf(c) < 0) all.push(c); });
+  var all = [];
+  state.cats.forEach(function(c){ if (c && all.indexOf(c) < 0) all.push(c); });
+  state.people.forEach(function(p){ var c = String(p.cat || '').trim(); if (c && all.indexOf(c) < 0) all.push(c); });
   document.getElementById('cats').innerHTML = all.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
 }
+/* Liste de suggestions modifiable (une par ligne) */
+var catsList = document.getElementById('catsList');
+function refreshCatsList(){ if (document.activeElement !== catsList) catsList.value = state.cats.join('\n'); }
+catsList.addEventListener('input', function(){
+  state.cats = catsList.value.split('\n').map(function(c){ return c.trim(); }).filter(Boolean);
+  refreshCats(); save();
+});
+document.getElementById('btnCatsReset').addEventListener('click', function(){
+  state.cats = DEFAULT_CATS.slice(); refreshCatsList(); refreshCats(); save();
+});
 
 function renderPeople(){
   var box = document.getElementById('people');
@@ -713,7 +748,7 @@ function renderPeople(){
       '<div class="mv"><button type="button" data-act="up" title="Monter"' + (i === 0 ? ' disabled' : '') + '>▲</button><button type="button" data-act="down" title="Descendre"' + (i === n-1 ? ' disabled' : '') + '>▼</button></div>' +
       '<input type="text" data-f="first" value="' + esc(p.first) + '" placeholder="Prénom" aria-label="Prénom">' +
       '<input type="text" data-f="last" value="' + esc(p.last) + '" placeholder="Nom" aria-label="Nom">' +
-      '<input type="text" data-f="cat" list="cats" value="' + esc(p.cat) + '" placeholder="Catég." aria-label="Catégorie">' +
+      '<input type="text" data-f="cat" list="cats" value="' + esc(p.cat) + '" placeholder="Catégorie…" aria-label="Catégorie">' +
       '<button type="button" class="del" data-act="del" title="Supprimer">×</button>' +
     '</div>';
   }).join('');
@@ -762,7 +797,7 @@ importFile.addEventListener('change', function(){
     try {
       var obj = JSON.parse(reader.result);
       state = merge(DEFAULTS, obj);
-      refreshBound(); refreshLogo(); refreshCats(); renderPeople(); save(); scheduleRender();
+      refreshBound(); refreshLogo(); refreshCatsList(); refreshCats(); renderPeople(); save(); scheduleRender();
     } catch(e) { alert('Ce fichier n’est pas un export valide de l’outil.'); }
   };
   reader.readAsText(f);
@@ -772,7 +807,7 @@ importFile.addEventListener('change', function(){
 document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
 
 /* ---------------- Démarrage ---------------- */
-refreshBound(); refreshLogo(); refreshCats(); renderPeople(); render();
+refreshBound(); refreshLogo(); refreshCatsList(); refreshCats(); renderPeople(); render();
 })();
 </script>
 </body>
