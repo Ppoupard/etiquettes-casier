@@ -117,7 +117,20 @@
   .topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
   .stats{font-weight:600}
   .stats small{color:var(--muted);font-weight:500;display:block;font-size:12px}
+  .print-what{width:auto;margin-left:12px;padding:6px 8px;font-size:13px}
   .zoom{margin-left:auto;display:flex;align-items:center;gap:4px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+  .chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:12px;cursor:pointer;background:#fff;user-select:none}
+  .chip input{accent-color:var(--accent);margin:0}
+  .chip:has(input:checked){background:#fbe9ec;border-color:var(--accent);color:var(--accent-dark);font-weight:600}
+  .chips .empty{width:100%}
+  .irow input[data-f=title]{grid-column:3;grid-row:1}
+  .irow input[data-f=cat]{grid-column:4;grid-row:1}
+  .irow input[data-f=detail]{grid-column:3;grid-row:2}
+  .irow select{grid-column:4;grid-row:2;padding:5px 4px;font-size:12px;border-radius:6px;color:#333}
+  .irow .pbtn{color:var(--accent);border-style:solid}
+  .irow .pbtn svg{width:22px;height:22px}
+  .irow .pbtn.has{color:inherit}
   .zoom .btn{padding:6px 9px}
   .zoom .val{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
   .preview{flex:1;overflow:auto;min-height:0}
@@ -150,6 +163,11 @@
   .photo.empty{background:transparent}
   .photo.empty.frame{border:.3mm dashed #b5b5bb;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000' fill-opacity='.12'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center;background-size:60%}
   .lay-plein .photo.empty.frame{border-color:rgba(255,255,255,.75);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff' fill-opacity='.35'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8z'/%3E%3C/svg%3E")}
+  .icon{flex:0 0 auto;align-self:center;color:var(--c);display:flex;align-items:center;justify-content:center}
+  .icon svg{width:100%;height:100%;display:block;min-width:0;min-height:0}
+  .icon.n2{display:grid;grid-template-rows:1fr 1fr}
+  .icon.n3,.icon.n4{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .lay-plein .icon{color:var(--bt)}
   .names{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
   .first{font-weight:600;white-space:nowrap;overflow:hidden;line-height:1.05;opacity:.82;margin-bottom:.12em}
   .last{font-weight:900;white-space:nowrap;overflow:hidden;line-height:1.02;letter-spacing:.02em}
@@ -196,6 +214,7 @@
     .main{min-height:60vh}
     .preview{overflow:visible}
     .topbar{position:sticky;top:0;z-index:5;flex-wrap:wrap}
+    .print-what{margin-left:0}
   }
 </style>
 </head>
@@ -383,9 +402,55 @@
         </div>
       </details>
 
-      <!-- 4. Sauvegarde -->
+      <!-- 4. Matériel -->
+      <details class="sec" open>
+        <summary><span class="num">4</span>Matériel par catégorie<span class="chev">▾</span></summary>
+        <div class="sec-body">
+          <p class="hint" style="margin:0 0 10px">Pour les casiers à ballons, chasubles, coupelles… : l'intitulé en grand, un pictogramme (ou une photo), la catégorie en pastille et un détail facultatif. Pour mettre <b>plusieurs choses sur la même étiquette</b>, sépare-les par un <b>+</b> : « Ballons + Chasubles » donne deux lignes et deux pictogrammes.</p>
+          <form class="addform" id="itemForm" autocomplete="off">
+            <input type="text" id="itTitle" list="itemNames" placeholder="Matériel (ex. Ballons + Chasubles)" aria-label="Matériel">
+            <input type="text" id="itCat" list="cats" placeholder="Catégorie / équipe" aria-label="Catégorie ou équipe">
+            <input type="text" id="itDetail" placeholder="Détail (ex. Taille 4 · 12)" aria-label="Détail">
+            <select id="itIcon" aria-label="Pictogramme"></select>
+            <div class="form-photo">
+              <span>Pictogramme choisi automatiquement d'après l'intitulé. Pour une photo, clique sur le pictogramme de la ligne une fois ajoutée.</span>
+              <button class="btn primary" type="submit" style="margin-left:auto">Ajouter</button>
+            </div>
+          </form>
+          <datalist id="itemNames"></datalist>
+          <div class="field" style="margin-top:10px">
+            <label for="itemNoPhoto">Étiquette matériel sans photo</label>
+            <select id="itemNoPhoto" data-bind="label.itemNoPhoto">
+              <option value="icon">Pictogramme</option>
+              <option value="frame">Cadre vide en pointillés (pour coller une photo)</option>
+            </select>
+          </div>
+          <details class="sub" open>
+            <summary>Créer d'un coup pour plusieurs catégories</summary>
+            <span class="lbl">Catégories / équipes concernées</span>
+            <div class="chips" id="genCats"></div>
+            <span class="lbl">Matériel (un par ligne)</span>
+            <textarea id="genItems" rows="4" spellcheck="false" aria-label="Matériel, un par ligne">Ballons
+Chasubles
+Coupelles
+Gourdes</textarea>
+            <button class="btn primary block" type="button" id="btnGen" style="margin-top:8px">Créer les étiquettes</button>
+            <div class="status" id="genStatus"></div>
+            <p class="hint">Une étiquette par ligne et par catégorie cochée (une ligne « Ballons + Chasubles » = une seule étiquette avec les deux). Les doublons déjà présents sont ignorés.</p>
+          </details>
+          <div class="count"><span id="itemCount">0 étiquette matériel</span>
+            <span class="tools" style="margin:0">
+              <button class="btn sm" type="button" id="btnItemSortCat" title="Trier par catégorie puis intitulé">Par catégorie</button>
+              <button class="btn sm danger" type="button" id="btnItemClear">Vider</button>
+            </span>
+          </div>
+          <div class="people" id="items"></div>
+        </div>
+      </details>
+
+      <!-- 5. Sauvegarde -->
       <details class="sec">
-        <summary><span class="num">4</span>Sauvegarde<span class="chev">▾</span></summary>
+        <summary><span class="num">5</span>Sauvegarde<span class="chev">▾</span></summary>
         <div class="sec-body">
           <p class="hint" style="margin:0 0 10px">Tout est enregistré automatiquement dans ce navigateur. Pour garder une copie ou passer sur un autre ordinateur, exporte un fichier.</p>
           <div class="grid2">
@@ -396,9 +461,9 @@
         </div>
       </details>
 
-      <!-- 5. Conseils -->
+      <!-- 6. Conseils -->
       <details class="sec">
-        <summary><span class="num">5</span>Conseils d'impression<span class="chev">▾</span></summary>
+        <summary><span class="num">6</span>Conseils d'impression<span class="chev">▾</span></summary>
         <div class="sec-body">
           <ol class="tips">
             <li>Clique sur <b>Imprimer / PDF</b> (ou <kbd>Ctrl</kbd> + <kbd>P</kbd>).</li>
@@ -418,6 +483,11 @@
   <main class="main">
     <div class="topbar">
       <div class="stats" id="stats">0 étiquette<small>—</small></div>
+      <select id="printWhat" data-bind="label.print" class="print-what" aria-label="Quoi imprimer">
+        <option value="all">Tout imprimer</option>
+        <option value="people">Personnes seulement</option>
+        <option value="items">Matériel seulement</option>
+      </select>
       <div class="zoom">
         <button class="btn" type="button" id="zoomOut" title="Réduire">−</button>
         <span class="val" id="zoomVal">100%</span>
@@ -440,15 +510,55 @@
 var LS_KEY = 'etiquettes-casiers-v1';
 var FAMILY = '"Segoe UI", Roboto, "Helvetica Neue", Arial, "Liberation Sans", sans-serif';
 var DEFAULT_CATS = ['U6','U7','U8','U9','U10','U11','U12','U13','U13F','U14','U15','U15F','U16','U17','U18','U18F','U19','Seniors','Seniors A','Seniors B','Seniors C','Seniors F','Vétérans','Loisirs','Futsal','École de foot','Bureau'];
+var ITEM_NAMES = ['Ballons','Ballons taille 3','Ballons taille 4','Ballons taille 5','Chasubles','Coupelles','Plots','Piquets','Gourdes','Trousse de secours','Mini-buts','Échelle de rythme','Cerceaux','Fanions','Brassards','Sifflets','Pompe','Sac de ballons','Matériel divers'];
+/* Pictogrammes (dessins simples, couleur du club) */
+var SVG_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">';
+var ICONS = {
+  ball:   { n:'Ballon',            svg: SVG_OPEN + '<circle cx="12" cy="12" r="9"/><path d="M12 7.5 16.3 10.6 14.6 15.6H9.4L7.7 10.6z" fill="currentColor" stroke="none"/><path d="M12 7.5V3M16.3 10.6l4.3-1.4M14.6 15.6l2.7 4M9.4 15.6l-2.7 4M7.7 10.6 3.4 9.2"/></svg>' },
+  bib:    { n:'Chasuble',          svg: SVG_OPEN + '<path d="M7 3h3a2 2 0 0 0 4 0h3l2 5-2 1v12H7V9L5 8z"/></svg>' },
+  cone:   { n:'Coupelle / plot',   svg: SVG_OPEN + '<path d="M9.5 4h5l4 15h-13z"/><path d="M4 19h16M7.6 12h8.8"/></svg>' },
+  bottle: { n:'Gourde',            svg: SVG_OPEN + '<path d="M10 3h4v3l2 2v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-2z"/><path d="M8 12h8M8 16h8"/></svg>' },
+  kit:    { n:'Trousse de secours',svg: SVG_OPEN + '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M12 11v5M9.5 13.5h5"/></svg>' },
+  goal:   { n:'But',               svg: SVG_OPEN + '<path d="M3 20V5h18v15"/><path d="M3 10h18M3 15h18M7.5 5v15M12 5v15M16.5 5v15"/></svg>' },
+  ladder: { n:'Échelle',           svg: SVG_OPEN + '<path d="M7 3v18M17 3v18M7 7h10M7 12h10M7 17h10"/></svg>' },
+  ring:   { n:'Cerceau',           svg: SVG_OPEN + '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/></svg>' },
+  flag:   { n:'Fanion',            svg: SVG_OPEN + '<path d="M6 21V4M6 4h11l-2.5 4 2.5 4H6"/></svg>' },
+  box:    { n:'Divers (carton)',   svg: SVG_OPEN + '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/></svg>' },
+  none:   { n:'Aucun',             svg: '' }
+};
+var ICON_ORDER = ['auto','ball','bib','cone','bottle','kit','goal','ladder','ring','flag','box','none'];
+function guessIcon(title){
+  var t = ' ' + norm(title) + ' ';
+  if (/ballon/.test(t)) return 'ball';
+  if (/chasuble|dossard|maillot/.test(t)) return 'bib';
+  if (/coupelle|plot|cone|piquet|jalon/.test(t)) return 'cone';
+  if (/gourde|bouteille| eau /.test(t)) return 'bottle';
+  if (/trousse|pharmacie|secours|soin|glace/.test(t)) return 'kit';
+  if (/ buts? |mini buts?/.test(t)) return 'goal';
+  if (/echelle/.test(t)) return 'ladder';
+  if (/cerceau|anneau/.test(t)) return 'ring';
+  if (/fanion|drapeau|touche/.test(t)) return 'flag';
+  return 'box';
+}
+/* « Ballons + Chasubles » → ['Ballons', 'Chasubles'] (séparateurs : + , ; / · & et) */
+function splitTitle(t){ return String(t || '').split(/\s*(?:[+,;\/·&]|\bet\b)\s*/i).map(function(s){ return s.trim(); }).filter(Boolean); }
+function iconsOf(it){
+  if (it.icon && it.icon !== 'auto' && ICONS[it.icon]) return it.icon === 'none' ? [] : [it.icon];
+  var out = [];
+  splitTitle(it.title).forEach(function(pt){ var k = guessIcon(pt); if (out.indexOf(k) < 0) out.push(k); });
+  if (!out.length) out.push('box');
+  return out.slice(0, 4);
+}
 var DEFAULT_ROLES = ['Joueur','Joueuse','Capitaine','Gardien','Gardienne','Éducateur','Éducatrice','Responsable de catégorie','Dirigeant','Dirigeante','Arbitre','Président','Vice-président','Trésorier','Secrétaire','Bénévole','Apprenti','Stagiaire'];
 var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, xl:{w:95,h:90}, band:{w:190,h:46}, wide:{w:190,h:90}, half:{w:190,h:138}, page:{w:190,h:277} };
 var SWATCHES = ['#c8102e','#e30613','#0b3c8c','#1a7f3c','#f28c00','#111111','#6a1b9a','#00838f'];
 var DEFAULTS = {
   club:{ name:'ASI Mûrs-Érigné', logo:null, color:'#c8102e', bandText:'#ffffff', nameColor:'#161616' },
-  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', photo:false, photoEmpty:'frame', upper:true, showClub:true, showLogo:true, showCat:true, showRole:true, pageByCat:false, blank:0 },
+  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', photo:false, photoEmpty:'frame', itemNoPhoto:'icon', upper:true, showClub:true, showLogo:true, showCat:true, showRole:true, pageByCat:false, blank:0, print:'all' },
   cats: DEFAULT_CATS.slice(),
   roles: DEFAULT_ROLES.slice(),
-  people:[]
+  people:[],
+  items:[]
 };
 
 function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
@@ -463,6 +573,7 @@ function cap(s){
   }).join(' ');
 }
 
+function capFirst(s){ s = String(s || '').trim().replace(/\s+/g, ' '); return s ? s.charAt(0).toLocaleUpperCase('fr') + s.slice(1) : s; }
 function merge(def, obj){
   var out = JSON.parse(JSON.stringify(def));
   if (!obj || typeof obj !== 'object') return out;
@@ -473,7 +584,13 @@ function merge(def, obj){
       photo: (typeof p.photo === 'string' && p.photo.indexOf('data:image/') === 0) ? p.photo : null }; });
   if (Array.isArray(obj.cats)) out.cats = obj.cats.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
   if (Array.isArray(obj.roles)) out.roles = obj.roles.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
+  if (Array.isArray(obj.items)) out.items = obj.items.filter(function(p){ return p && typeof p === 'object'; })
+    .map(function(p){ return { id: String(p.id || uid()), title: String(p.title || ''), cat: String(p.cat || ''), detail: String(p.detail || ''),
+      icon: (ICON_ORDER.indexOf(p.icon) >= 0) ? p.icon : 'auto',
+      photo: (typeof p.photo === 'string' && p.photo.indexOf('data:image/') === 0) ? p.photo : null }; });
   out.label.showRole = (out.label.showRole !== false);
+  if (!/^(all|people|items)$/.test(out.label.print)) out.label.print = 'all';
+  if (!/^(icon|frame)$/.test(out.label.itemNoPhoto)) out.label.itemNoPhoto = 'icon';
   if (!/^(frame|blank)$/.test(out.label.photoEmpty)) out.label.photoEmpty = 'frame';
   out.label.photo = !!out.label.photo;
   /* garde-fous */
@@ -573,19 +690,26 @@ function cmpName(a, b){
   return r || String(a.first||'').localeCompare(String(b.first||''), 'fr', { sensitivity:'base' });
 }
 
-/* Liste des étiquettes à imprimer (personnes + vierges) */
+/* Liste des étiquettes à imprimer (personnes + matériel + vierges) */
 function items(){
-  var list = state.people.filter(function(p){ return (String(p.first||'') + String(p.last||'') + String(p.cat||'') + String(p.role||'')).trim() !== ''; });
-  var arr = list.map(function(p){ return { first:p.first, last:p.last, cat:p.cat, role:p.role || '', photo:p.photo || null }; });
+  var pr = state.label.print, arr = [], nP = 0, nI = 0;
+  if (pr !== 'items') {
+    state.people.filter(function(p){ return (String(p.first||'') + String(p.last||'') + String(p.cat||'') + String(p.role||'')).trim() !== ''; })
+      .forEach(function(p){ arr.push({ first:p.first, last:p.last, cat:p.cat, role:p.role || '', photo:p.photo || null }); nP++; });
+  }
+  if (pr !== 'people') {
+    state.items.filter(function(p){ return (String(p.title||'') + String(p.cat||'')).trim() !== ''; })
+      .forEach(function(p){ arr.push({ kind:'item', title:p.title, cat:p.cat, detail:p.detail || '', icon:p.icon, photo:p.photo || null }); nI++; });
+  }
   if (state.label.pageByCat) {
     arr = arr.map(function(p, i){ return { p:p, i:i }; })
       .sort(function(a, b){ return cmpCat(a.p.cat, b.p.cat) || (a.i - b.i); })
       .map(function(x){ return x.p; });
   }
-  for (var i = 0; i < state.label.blank; i++) arr.push({ blank:true });
+  if (pr !== 'items') for (var i = 0; i < state.label.blank; i++) arr.push({ blank:true });
   var example = false;
   if (arr.length === 0) { arr.push({ first:'Prénom', last:'Nom', cat:'U15F', role:'Rôle', example:true }); example = true; }
-  return { list:arr, example:example };
+  return { list:arr, example:example, nP:nP, nI:nI };
 }
 
 function paginate(list, perPage){
@@ -603,30 +727,46 @@ function paginate(list, perPage){
 /* ---------------- Rendu d'une étiquette ---------------- */
 function labelHTML(it, x, y){
   var L = state.label, C = state.club, W = L.w, H = L.h;
-  var blank = !!it.blank;
-  var first = blank ? '' : String(it.first || '').trim();
-  var last = blank ? '' : String(it.last || '').trim();
+  var blank = !!it.blank, isItem = it.kind === 'item';
+  var first = (blank || isItem) ? '' : String(it.first || '').trim();
+  var last = blank ? '' : String(isItem ? it.title || '' : it.last || '').trim();
   if (L.upper) last = upperFr(last);
   var cat = (blank || !L.showCat) ? '' : String(it.cat || '').trim();
-  var role = (blank || !L.showRole) ? '' : String(it.role || '').trim();
+  var role = blank ? '' : isItem ? String(it.detail || '').trim() : (L.showRole ? String(it.role || '').trim() : '');
   var clubTxt = L.showClub ? upperFr(String(C.name || '').trim()) : '';
   var logo = (L.showLogo && C.logo) ? C.logo : null;
   var pad = clamp(Math.min(W, H) * 0.065, 1.5, 5);
   var cls = ['lab', 'lay-' + L.layout, 'cs-' + L.catStyle];
   if (blank) cls.push('blank');
+  if (isItem) cls.push('item');
   if (it.example) cls.push('example');
   var style = 'left:' + x.toFixed(3) + 'mm;top:' + y.toFixed(3) + 'mm;width:' + W + 'mm;height:' + H + 'mm;--c:' + esc(C.color) + ';--bt:' + esc(C.bandText) + ';--nc:' + esc(C.nameColor);
   var inner = '', contentW, firstFont, lastFont, catFont, namesHTML, catHTML;
   var photoHTML = '', photoW = 0, photoGap = 0;
 
-  /* Emplacement photo (portrait 3:4) : photo de la personne, ou cadre vide à remplir plus tard */
+  /* Étiquette matériel : un ou plusieurs pictogrammes prennent la place de la photo */
+  function iconBlock(availH){
+    var ics = iconsOf(it);
+    if (!ics.length) return;
+    var s = Math.max(6, Math.min(availH, W * 0.3));
+    photoW = s; photoGap = pad * 0.8;
+    photoHTML = '<div class="icon n' + ics.length + '" style="width:' + s.toFixed(2) + 'mm;height:' + s.toFixed(2) + 'mm;margin-right:' + photoGap.toFixed(2) + 'mm">' +
+      ics.map(function(k){ return ICONS[k].svg; }).join('') + '</div>';
+  }
+  /* Emplacement photo (portrait 3:4) : photo, ou cadre vide à remplir plus tard */
   function photoBlock(availH){
-    if (!L.photo) return;
+    var src = (!blank && it.photo) ? it.photo : null, emptyStyle;
+    if (isItem) {
+      if (!src && L.itemNoPhoto !== 'frame') return iconBlock(availH);
+      emptyStyle = 'frame';
+    } else {
+      if (!L.photo) return;
+      emptyStyle = (L.photoEmpty === 'blank') ? 'nothing' : 'frame';
+    }
     var ph = Math.max(6, availH), pw = ph * 0.78;
     if (pw > W * 0.42) { pw = W * 0.42; ph = pw / 0.78; } /* sur les très grandes étiquettes, la photo ne mange pas la place du nom */
     photoW = pw; photoGap = pad * 0.8;
-    var src = (!blank && it.photo) ? it.photo : null;
-    var pcls = 'photo' + (src ? '' : ' empty ' + (L.photoEmpty === 'blank' ? 'nothing' : 'frame'));
+    var pcls = 'photo' + (src ? '' : ' empty ' + emptyStyle);
     photoHTML = '<div class="' + pcls + '" style="width:' + pw.toFixed(2) + 'mm;height:' + ph.toFixed(2) + 'mm;margin-right:' + photoGap.toFixed(2) + 'mm">' +
       (src ? '<img src="' + src + '" alt="">' : '') + '</div>';
   }
@@ -634,6 +774,21 @@ function labelHTML(it, x, y){
   function names(fMax, lMax){
     firstFont = fitFont(first, fMax, contentW, 600, 0);
     lastFont = fitFont(last, lMax, contentW, 900, 0.02);
+    var lastLines = [last];
+    var parts = isItem ? splitTitle(last) : [last];
+    if (parts.length > 1) { /* « BALLONS + CHASUBLES » : une ligne par élément */
+      var n = Math.min(parts.length, 4), lMaxN = H * [0.27, 0.19, 0.135, 0.105][n - 1];
+      lastLines = parts.slice(0, n);
+      lastFont = lastLines.reduce(function(m, ln){ return Math.min(m, fitFont(ln, lMaxN, contentW, 900, 0.02)); }, lMaxN);
+    } else if (isItem && last.indexOf(' ') > 0 && lastFont < lMax * 0.65) { /* intitulé long : sur deux lignes si c'est plus lisible */
+      var words = last.split(' '), best = null;
+      for (var k = 1; k < words.length; k++) {
+        var l1 = words.slice(0, k).join(' '), l2 = words.slice(k).join(' ');
+        var f = Math.min(fitFont(l1, lMax * 0.72, contentW, 900, 0.02), fitFont(l2, lMax * 0.72, contentW, 900, 0.02));
+        if (!best || f > best.f) best = { f:f, l1:l1, l2:l2 };
+      }
+      if (best && best.f > lastFont * 1.25) { lastLines = [best.l1, best.l2]; lastFont = best.f; }
+    }
     /* Ligne du bas : rôle (texte, à gauche) + catégorie (pastille, à droite) */
     var emCat = 0, pillW = 0;
     if (cat) {
@@ -658,7 +813,7 @@ function labelHTML(it, x, y){
     } else {
       namesHTML = '<div class="names">' +
         (first ? '<div class="first" style="font-size:' + firstFont.toFixed(2) + 'mm">' + esc(first) + '</div>' : '') +
-        (last ? '<div class="last" style="font-size:' + lastFont.toFixed(2) + 'mm">' + esc(last) + '</div>' : '') +
+        (last ? lastLines.map(function(ln){ return '<div class="last" style="font-size:' + lastFont.toFixed(2) + 'mm">' + esc(ln) + '</div>'; }).join('') : '') +
         '</div>';
     }
     catHTML = (cat || role) ? '<div class="catrow" style="gap:' + pad.toFixed(2) + 'mm">' + roleHTML +
@@ -672,7 +827,7 @@ function labelHTML(it, x, y){
     var clubFont = fitFont(longest, clamp(H * 0.075, 2, 6), side - 2*pad, 800, 0.04);
     photoBlock(Math.min(H - 2*pad, H * 0.6));
     contentW = W - side - 2*pad - photoW - photoGap;
-    names(H * 0.15, H * 0.26);
+    names(H * 0.15, isItem ? H * 0.28 : H * 0.26);
     inner = '<div class="side" style="width:' + side.toFixed(2) + 'mm;padding:' + pad.toFixed(2) + 'mm ' + (pad*0.6).toFixed(2) + 'mm;gap:' + (pad*0.6).toFixed(2) + 'mm">' +
         (logo ? '<img class="logo" src="' + logo + '" alt="" style="width:' + logoS.toFixed(2) + 'mm;height:' + logoS.toFixed(2) + 'mm">' : '') +
         (clubTxt ? '<div class="club" style="font-size:' + clubFont.toFixed(2) + 'mm">' + esc(clubTxt) + '</div>' : '') +
@@ -688,7 +843,7 @@ function labelHTML(it, x, y){
     var padV = pad * 0.8;
     photoBlock(H - bandH - stripe - 2*padV);
     contentW = W - 2*pad - photoW - photoGap;
-    names(H * 0.14, H * 0.24);
+    names(H * 0.14, isItem ? H * 0.27 : H * 0.24);
     inner = '<div class="band" style="height:' + bandH.toFixed(2) + 'mm;padding:0 ' + pad.toFixed(2) + 'mm;gap:' + (pad*0.7).toFixed(2) + 'mm">' +
         (logo ? '<img class="logo" src="' + logo + '" alt="" style="width:' + logoS2.toFixed(2) + 'mm;height:' + logoS2.toFixed(2) + 'mm">' : '') +
         (clubTxt ? '<div class="club" style="font-size:' + clubFont2.toFixed(2) + 'mm">' + esc(clubTxt) + '</div>' : '') +
@@ -760,13 +915,14 @@ function render(){
 
   var n = its.example ? 0 : list.length;
   var stats = document.getElementById('stats');
-  stats.innerHTML = esc(n + (n > 1 ? ' étiquettes' : ' étiquette')) +
+  var detail = (its.nP && its.nI) ? ' (' + its.nP + ' pers. · ' + its.nI + ' matériel)' : '';
+  stats.innerHTML = esc(n + (n > 1 ? ' étiquettes' : ' étiquette') + detail) +
     '<small>' + esc((its.example ? 1 : pages.length) + (pages.length > 1 && !its.example ? ' pages' : ' page') + ' · ' + g.perPage + ' par page (' + g.cols + ' × ' + g.rows + ')') + '</small>';
 
   document.getElementById('photoEmptyField').style.display = L.photo ? '' : 'none';
 
   /* Prévenir si des infos saisies sont masquées par un réglage */
-  var hiddenCat = !L.showCat && state.people.some(function(p){ return String(p.cat || '').trim(); });
+  var hiddenCat = !L.showCat && state.people.concat(state.items).some(function(p){ return String(p.cat || '').trim(); });
   var hiddenRole = !L.showRole && state.people.some(function(p){ return String(p.role || '').trim(); });
   var hw = document.getElementById('hiddenWarn');
   if (hiddenCat || hiddenRole) {
@@ -874,7 +1030,8 @@ function refreshLogo(){
 /* ---------------- Photos des personnes ---------------- */
 var CAM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3"/></svg>';
 /* Recadre la photo en portrait 3:4 et la réduit (360 × 480 px, JPEG) pour rester légère */
-function processPhoto(file){
+function processPhoto(file, bias){
+  if (bias == null) bias = 0.3;
   return new Promise(function(res, rej){
     var reader = new FileReader();
     reader.onload = function(){
@@ -886,7 +1043,7 @@ function processPhoto(file){
           if (!sw || !sh) return rej(new Error('image vide'));
           var cw = sw, ch = sh;
           if (sw / sh > ratio) cw = Math.round(sh * ratio); else ch = Math.round(sw / ratio);
-          var sx = Math.round((sw - cw) / 2), sy = Math.round((sh - ch) * 0.3); /* cadrage un peu vers le haut : les visages */
+          var sx = Math.round((sw - cw) / 2), sy = Math.round((sh - ch) * bias); /* personnes : cadrage un peu vers le haut (visages) ; matériel : centré */
           var sc = Math.min(1, TW / cw);
           var cv = document.createElement('canvas');
           cv.width = Math.max(1, Math.round(cw * sc)); cv.height = Math.max(1, Math.round(ch * sc));
@@ -907,8 +1064,13 @@ var photoFile = document.getElementById('photoFile'), photoTarget = null, pendin
 function pickPhoto(target){ photoTarget = target; photoFile.value = ''; photoFile.click(); }
 photoFile.addEventListener('change', function(){
   var f = photoFile.files && photoFile.files[0]; if (!f) return;
-  processPhoto(f).then(function(d){
+  var isItemTarget = String(photoTarget).indexOf('item:') === 0;
+  processPhoto(f, isItemTarget ? 0.5 : 0.3).then(function(d){
     if (photoTarget === 'form') { pendingPhoto = d; refreshFormPhoto(); return; }
+    if (isItemTarget) {
+      var itm = state.items.find(function(x){ return x.id === photoTarget.slice(5); }); if (!itm) return;
+      itm.photo = d; renderItems(); save(); scheduleRender(); return;
+    }
     var p = state.people.find(function(x){ return x.id === photoTarget; }); if (!p) return;
     p.photo = d; renderPeople(); save(); scheduleRender();
   }, function(){ setStatus('Cette image n’a pas pu être lue.', true); });
@@ -926,11 +1088,18 @@ function setStatus(msg, err){ var s = document.getElementById('photosStatus'); s
 function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 function nameIndex(){
   var idx = {}, count = {};
-  function add(key, p){ if (!key) return; count[key] = (count[key] || 0) + 1; idx[key] = p; }
+  function add(key, v){ if (!key) return; count[key] = (count[key] || 0) + 1; idx[key] = v; }
   state.people.forEach(function(p){
-    var f = norm(p.first), l = norm(p.last);
-    add((f + ' ' + l).trim(), p); if (f && l) add(l + ' ' + f, p);
-    if (l) add(l, p); if (f) add(f, p);
+    var f = norm(p.first), l = norm(p.last), v = { p:p, item:false };
+    add((f + ' ' + l).trim(), v); if (f && l) add(l + ' ' + f, v);
+    if (l) add(l, v); if (f) add(f, v);
+  });
+  state.items.forEach(function(p){ /* matériel : « Ballons U15F.jpg », « U15F Ballons.jpg » ou « Ballons.jpg » si unique */
+    var t = norm(p.title), c = norm(p.cat), v = { p:p, item:true };
+    if (!t) return;
+    add(t, v); if (c) { add(t + ' ' + c, v); add(c + ' ' + t, v); }
+    var parts = splitTitle(p.title);
+    if (parts.length > 1 && c) parts.forEach(function(pt){ var k = norm(pt); if (k) { add(k + ' ' + c, v); add(c + ' ' + k, v); } }); /* « Ballons U15F.jpg » vise aussi « Ballons + Chasubles » U15F */
   });
   Object.keys(count).forEach(function(k){ if (count[k] > 1) delete idx[k]; }); /* homonymes : on ne devine pas */
   return idx;
@@ -943,12 +1112,12 @@ photosBulk.addEventListener('change', function(){
   var idx = nameIndex(), ok = 0, bad = [];
   files.reduce(function(chain, f){
     return chain.then(function(){
-      var p = idx[norm(f.name.replace(/\.[^.]+$/, ''))];
-      if (!p) { bad.push(f.name); return; }
-      return processPhoto(f).then(function(d){ p.photo = d; ok++; }, function(){ bad.push(f.name); });
+      var v = idx[norm(f.name.replace(/\.[^.]+$/, ''))];
+      if (!v) { bad.push(f.name); return; }
+      return processPhoto(f, v.item ? 0.5 : 0.3).then(function(d){ v.p.photo = d; ok++; }, function(){ bad.push(f.name); });
     });
   }, Promise.resolve()).then(function(){
-    renderPeople(); save(); scheduleRender();
+    renderPeople(); renderItems(); save(); scheduleRender();
     setStatus(ok + ' photo' + (ok > 1 ? 's' : '') + ' associée' + (ok > 1 ? 's' : '') +
       (bad.length ? ' · non reconnue' + (bad.length > 1 ? 's' : '') + ' : ' + bad.join(', ') : ''), !ok);
   });
@@ -973,7 +1142,11 @@ function fillList(id, base, field){
   state.people.forEach(function(p){ var c = String(p[field] || '').trim(); if (c && all.indexOf(c) < 0) all.push(c); });
   document.getElementById(id).innerHTML = all.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
 }
-function refreshCats(){ fillList('cats', state.cats, 'cat'); fillList('roles', state.roles, 'role'); }
+function refreshCats(){
+  document.getElementById('cats').innerHTML = usedCats().map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
+  fillList('roles', state.roles, 'role');
+  renderGenCats();
+}
 /* Listes de suggestions modifiables (une par ligne) */
 var catsList = document.getElementById('catsList'), rolesList = document.getElementById('rolesList');
 function refreshCatsList(){
@@ -1034,6 +1207,114 @@ clearBtn.addEventListener('click', function(){
   state.people = []; renderPeople(); refreshCats(); save(); scheduleRender();
 });
 
+/* ---------------- Matériel ---------------- */
+function iconOptions(sel){
+  return ICON_ORDER.map(function(k){
+    var n = k === 'auto' ? 'Auto (selon l’intitulé)' : ICONS[k].n;
+    return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + esc(n) + '</option>';
+  }).join('');
+}
+document.getElementById('itIcon').innerHTML = iconOptions('auto');
+document.getElementById('itemNames').innerHTML = ITEM_NAMES.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
+var itTitle = document.getElementById('itTitle'), itCat = document.getElementById('itCat'), itDetail = document.getElementById('itDetail'), itIcon = document.getElementById('itIcon');
+document.getElementById('itemForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var title = capFirst(itTitle.value), cat = itCat.value.trim();
+  if (!title) { itTitle.focus(); return; }
+  state.items.push({ id:uid(), title:title, cat:cat, detail:itDetail.value.trim(), icon:itIcon.value });
+  itTitle.value = ''; itDetail.value = ''; itIcon.value = 'auto';
+  itTitle.focus();
+  refreshCats(); renderItems(); save(); scheduleRender();
+});
+function usedCats(){
+  var all = [];
+  state.cats.forEach(function(c){ if (c && all.indexOf(c) < 0) all.push(c); });
+  state.people.concat(state.items).forEach(function(p){ var c = String(p.cat || '').trim(); if (c && all.indexOf(c) < 0) all.push(c); });
+  return all;
+}
+function renderItems(){
+  var box = document.getElementById('items'), n = state.items.length;
+  document.getElementById('itemCount').textContent = n + (n > 1 ? ' étiquettes matériel' : ' étiquette matériel');
+  if (!n) { box.innerHTML = '<div class="empty">Aucune étiquette matériel pour l’instant.</div>'; return; }
+  box.innerHTML = state.items.map(function(p, i){
+    var ics = iconsOf(p), ic = ics[0] || 'box';
+    var names = ics.map(function(k){ return ICONS[k].n; }).join(' + ');
+    return '<div class="prow irow" data-id="' + esc(p.id) + '">' +
+      '<div class="mv"><button type="button" data-act="up" title="Monter"' + (i === 0 ? ' disabled' : '') + '>▲</button><button type="button" data-act="down" title="Descendre"' + (i === n-1 ? ' disabled' : '') + '>▼</button></div>' +
+      '<div class="pwrap' + (p.photo ? ' has' : '') + '"><button type="button" class="pbtn' + (p.photo ? ' has' : '') + '" data-act="photo" title="' + (p.photo ? 'Changer la photo' : esc(names) + ' — cliquer pour mettre une photo') + '">' +
+        (p.photo ? '<img src="' + p.photo + '" alt="">' : ICONS[ic].svg) + '</button>' +
+        '<button type="button" class="pdel" data-act="photodel" title="Retirer la photo">×</button></div>' +
+      '<input type="text" data-f="title" list="itemNames" value="' + esc(p.title) + '" placeholder="Matériel" aria-label="Matériel">' +
+      '<input type="text" data-f="cat" list="cats" value="' + esc(p.cat) + '" placeholder="Catégorie / équipe" aria-label="Catégorie ou équipe">' +
+      '<input type="text" data-f="detail" value="' + esc(p.detail) + '" placeholder="Détail (facultatif)" aria-label="Détail">' +
+      '<select data-f="icon" aria-label="Pictogramme">' + iconOptions(p.icon || 'auto') + '</select>' +
+      '<button type="button" class="del" data-act="del" title="Supprimer">×</button>' +
+    '</div>';
+  }).join('');
+}
+var itemsBox = document.getElementById('items');
+itemsBox.addEventListener('input', function(e){
+  var row = e.target.closest('.prow'); if (!row || !e.target.dataset.f) return;
+  var p = state.items.find(function(x){ return x.id === row.dataset.id; }); if (!p) return;
+  p[e.target.dataset.f] = e.target.value;
+  if ((e.target.dataset.f === 'title' || e.target.dataset.f === 'icon') && !p.photo) {
+    var pic = row.querySelector('.pbtn'), ics = iconsOf(p);
+    pic.innerHTML = ICONS[ics[0] || 'box'].svg;
+    pic.title = ics.map(function(k){ return ICONS[k].n; }).join(' + ') + ' — cliquer pour mettre une photo';
+  }
+  save(); scheduleRender();
+});
+itemsBox.addEventListener('change', function(e){ if (e.target.dataset.f === 'cat') refreshCats(); });
+itemsBox.addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-act]'); if (!btn) return;
+  var row = btn.closest('.prow'), idx = state.items.findIndex(function(x){ return x.id === row.dataset.id; }); if (idx < 0) return;
+  var act = btn.dataset.act;
+  if (act === 'photo') { pickPhoto('item:' + state.items[idx].id); return; }
+  if (act === 'photodel') state.items[idx].photo = null;
+  else if (act === 'del') state.items.splice(idx, 1);
+  else if (act === 'up' && idx > 0) { var a = state.items[idx-1]; state.items[idx-1] = state.items[idx]; state.items[idx] = a; }
+  else if (act === 'down' && idx < state.items.length - 1) { var b2 = state.items[idx+1]; state.items[idx+1] = state.items[idx]; state.items[idx] = b2; }
+  renderItems(); refreshCats(); save(); scheduleRender();
+});
+document.getElementById('btnItemSortCat').addEventListener('click', function(){
+  state.items.sort(function(a, b){ return cmpCat(a.cat, b.cat) || String(a.title||'').localeCompare(String(b.title||''), 'fr', { sensitivity:'base' }); });
+  renderItems(); save(); scheduleRender();
+});
+var itemClearBtn = document.getElementById('btnItemClear'), itemClearArmed = null;
+itemClearBtn.addEventListener('click', function(){
+  if (!itemClearArmed) { itemClearBtn.textContent = 'Confirmer ?'; itemClearArmed = setTimeout(function(){ itemClearBtn.textContent = 'Vider'; itemClearArmed = null; }, 3000); return; }
+  clearTimeout(itemClearArmed); itemClearArmed = null; itemClearBtn.textContent = 'Vider';
+  state.items = []; renderItems(); refreshCats(); save(); scheduleRender();
+});
+/* Générateur : mêmes étiquettes pour toutes les catégories cochées */
+function renderGenCats(){
+  var box = document.getElementById('genCats');
+  var checked = {};
+  box.querySelectorAll('input:checked').forEach(function(i){ checked[i.value] = true; });
+  var cats = usedCats();
+  if (!cats.length) { box.innerHTML = '<div class="empty">Ajoute d’abord des catégories (menu « Suggestions » de la section 3, ou en saisissant des personnes).</div>'; return; }
+  box.innerHTML = cats.map(function(c){
+    return '<label class="chip"><input type="checkbox" value="' + esc(c) + '"' + (checked[c] ? ' checked' : '') + '> ' + esc(c) + '</label>';
+  }).join('');
+}
+document.getElementById('btnGen').addEventListener('click', function(){
+  var cats = Array.prototype.map.call(document.querySelectorAll('#genCats input:checked'), function(i){ return i.value; });
+  var names = linesOf(document.getElementById('genItems'));
+  var st = document.getElementById('genStatus');
+  if (!cats.length) { st.textContent = 'Coche au moins une catégorie.'; st.className = 'status err'; return; }
+  if (!names.length) { st.textContent = 'Indique au moins un matériel (un par ligne).'; st.className = 'status err'; return; }
+  var existing = {}; state.items.forEach(function(p){ existing[norm(p.title) + '|' + catKey(p.cat)] = true; });
+  var added = 0;
+  cats.forEach(function(c){ names.forEach(function(nm){
+    var t = capFirst(nm), key = norm(t) + '|' + catKey(c);
+    if (existing[key]) return;
+    existing[key] = true; state.items.push({ id:uid(), title:t, cat:c, detail:'', icon:'auto' }); added++;
+  }); });
+  st.textContent = added ? added + ' étiquette' + (added > 1 ? 's créées' : ' créée') + '.' : 'Rien à créer : ces étiquettes existent déjà.';
+  st.className = 'status' + (added ? '' : ' err');
+  renderItems(); refreshCats(); save(); scheduleRender();
+});
+
 /* ---------------- Export / import ---------------- */
 document.getElementById('btnExport').addEventListener('click', function(){
   var d = new Date(), stamp = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -1052,7 +1333,7 @@ importFile.addEventListener('change', function(){
     try {
       var obj = JSON.parse(reader.result);
       state = merge(DEFAULTS, obj);
-      refreshBound(); refreshLogo(); refreshCatsList(); refreshCats(); renderPeople(); save(); scheduleRender();
+      refreshBound(); refreshLogo(); refreshCatsList(); refreshCats(); renderPeople(); renderItems(); save(); scheduleRender();
     } catch(e) { alert('Ce fichier n’est pas un export valide de l’outil.'); }
   };
   reader.readAsText(f);
@@ -1063,7 +1344,7 @@ document.getElementById('btnPrint').addEventListener('click', function(){ window
 
 /* ---------------- Démarrage ---------------- */
 loadState().then(function(s){ state = s; }, function(){}).then(function(){
-  refreshBound(); refreshLogo(); refreshCatsList(); refreshCats(); renderPeople(); refreshFormPhoto(); render();
+  refreshBound(); refreshLogo(); refreshCatsList(); refreshCats(); renderPeople(); renderItems(); refreshFormPhoto(); render();
 });
 })();
 </script>
