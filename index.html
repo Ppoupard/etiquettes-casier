@@ -68,18 +68,28 @@
   .addform .row2 input{flex:1}
   .tools{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
   .count{font-size:12px;color:var(--muted);margin:8px 0 4px;display:flex;justify-content:space-between;align-items:center}
-  .people{display:flex;flex-direction:column;gap:4px}
-  .prow{display:grid;grid-template-columns:22px 30px 1fr 1fr 1.3fr 26px;gap:5px;align-items:center}
-  .pbtn{width:30px;height:36px;border:1px dashed #c9c9cf;border-radius:5px;background:var(--soft);padding:0;cursor:pointer;overflow:hidden;position:relative;display:grid;place-items:center;color:var(--muted)}
+  .people{display:flex;flex-direction:column;gap:6px}
+  .prow{display:grid;grid-template-columns:22px 32px 1fr 1fr 26px;grid-template-rows:auto auto;gap:4px 5px;align-items:center;padding:6px 6px 6px 2px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .prow .mv{grid-column:1;grid-row:1/3}
+  .prow .pwrap{grid-column:2;grid-row:1/3}
+  .prow .del{grid-column:5;grid-row:1/3}
+  .prow input[data-f=first]{grid-column:3;grid-row:1}
+  .prow input[data-f=last]{grid-column:4;grid-row:1}
+  .prow input[data-f=cat]{grid-column:3;grid-row:2}
+  .prow input[data-f=role]{grid-column:4;grid-row:2}
+  .prow input[data-f=cat],.prow input[data-f=role]{font-size:12px;color:#333}
+  .pwrap{position:relative;width:32px;height:44px}
+  .pbtn{width:32px;height:44px;border:1px dashed #c9c9cf;border-radius:5px;background:var(--soft);padding:0;cursor:pointer;overflow:hidden;position:relative;display:grid;place-items:center;color:var(--muted)}
   .pbtn:hover{border-color:var(--accent);color:var(--accent)}
   .pbtn img{width:100%;height:100%;object-fit:cover;display:block}
   .pbtn svg{width:16px;height:16px}
   .pbtn.has{border-style:solid}
-  .pwrap{position:relative;width:30px;height:36px}
   .pdel{position:absolute;top:-5px;right:-5px;width:15px;height:15px;border-radius:50%;background:var(--danger);color:#fff;font-size:11px;line-height:14px;text-align:center;border:0;cursor:pointer;padding:0;display:none}
   .pwrap.has .pdel{display:block}
-  .form-photo{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .form-photo{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);line-height:1.25}
   .form-photo .pwrap{flex:0 0 auto}
+  .sub .grid2 .lbl{margin-bottom:4px}
+  .sub textarea{min-height:60px;font-size:12px}
   .photo-tools{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
   .status{font-size:12px;color:var(--ok);margin-top:6px;line-height:1.4}
   .status.err{color:var(--danger)}
@@ -90,7 +100,7 @@
   .prow .del{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 2px;border-radius:6px}
   .prow .del:hover{color:var(--danger);background:#fbeceb}
   .prow .cathead{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .people-head{display:grid;grid-template-columns:22px 30px 1fr 1fr 1.3fr 26px;gap:5px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:0 0 2px}
+  .warn .btn{margin-top:6px}
   details.sub{margin-top:8px;border:1px solid var(--line);border-radius:8px;padding:0 10px}
   details.sub>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:8px 0;user-select:none}
   details.sub[open]>summary{border-bottom:1px solid var(--line);margin-bottom:8px}
@@ -143,13 +153,16 @@
   .names{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
   .first{font-weight:600;white-space:nowrap;overflow:hidden;line-height:1.05;opacity:.82;margin-bottom:.12em}
   .last{font-weight:900;white-space:nowrap;overflow:hidden;line-height:1.02;letter-spacing:.02em}
-  .catrow{flex:0 0 auto;text-align:right;line-height:1;min-width:0}
-  .cat{display:inline-block;background:var(--c);color:var(--bt);font-weight:700;letter-spacing:.03em;padding:.34em .85em;border-radius:99em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+  .catrow{flex:0 0 auto;display:flex;align-items:center;line-height:1;min-width:0}
+  .role{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;color:var(--c);letter-spacing:.02em;line-height:1.15}
+  .cat{display:inline-block;margin-left:auto;background:var(--c);color:var(--bt);font-weight:700;letter-spacing:.03em;padding:.34em .85em;border-radius:99em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.1;flex:0 0 auto}
+  .lay-lateral .cat{margin-left:0}
+  .lay-plein .role{color:var(--bt)}
   .stripe{background:var(--c);flex:0 0 auto}
   .wl{border-bottom:.3mm dotted #b9b9bf;margin:0 0 .35em}
   .lay-lateral .txt{justify-content:center}
   .lay-lateral .names{flex:0 0 auto}
-  .lay-lateral .catrow{text-align:left;margin-top:.5em}
+  .lay-lateral .catrow{margin-top:.5em}
   .lay-plein{background:var(--c);color:var(--bt)}
   .lay-plein .band{background:transparent;border-bottom:.3mm solid rgba(255,255,255,.55)}
   .lay-plein .first{opacity:.9}
@@ -283,7 +296,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="catStyle">Affichage de la catégorie</label>
+            <label for="catStyle">Affichage de la catégorie / équipe</label>
             <select id="catStyle" data-bind="label.catStyle">
               <option value="pill">Pastille colorée</option>
               <option value="text">Texte simple, sans fond</option>
@@ -300,7 +313,8 @@
           <label class="check"><input type="checkbox" data-bind="label.upper"> Nom de famille en MAJUSCULES</label>
           <label class="check"><input type="checkbox" data-bind="label.showClub"> Afficher le nom du club</label>
           <label class="check"><input type="checkbox" data-bind="label.showLogo"> Afficher le logo</label>
-          <label class="check"><input type="checkbox" data-bind="label.showCat"> Afficher la catégorie / équipe</label>
+          <label class="check"><input type="checkbox" data-bind="label.showCat"> Afficher la catégorie / équipe (pastille)</label>
+          <label class="check"><input type="checkbox" data-bind="label.showRole"> Afficher le rôle</label>
           <label class="check"><input type="checkbox" data-bind="label.cuts"> Traits de coupe</label>
           <label class="check"><input type="checkbox" data-bind="label.pageByCat"> Nouvelle page à chaque catégorie</label>
           <div class="field" style="margin-top:8px">
@@ -317,27 +331,37 @@
           <form class="addform" id="addForm" autocomplete="off">
             <input type="text" id="inFirst" placeholder="Prénom" aria-label="Prénom">
             <input type="text" id="inLast" placeholder="Nom" aria-label="Nom">
-            <div class="row2">
-              <input type="text" id="inCat" list="cats" placeholder="Catégorie, équipe, rôle… (libre)" aria-label="Catégorie">
-              <button class="btn primary" type="submit">Ajouter</button>
-            </div>
+            <input type="text" id="inCat" list="cats" placeholder="Catégorie / équipe" aria-label="Catégorie ou équipe">
+            <input type="text" id="inRole" list="roles" placeholder="Rôle (facultatif)" aria-label="Rôle">
             <div class="form-photo">
               <div class="pwrap" id="formPhotoWrap">
                 <button type="button" class="pbtn" id="formPhotoBtn" title="Choisir une photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3"/></svg></button>
                 <button type="button" class="pdel" id="formPhotoDel" title="Retirer la photo">×</button>
               </div>
-              <span>Photo (facultatif) — tu pourras aussi l'ajouter plus tard depuis la liste.</span>
+              <span>Photo<br>(facultatif)</span>
+              <button class="btn primary" type="submit" style="margin-left:auto">Ajouter</button>
             </div>
           </form>
           <datalist id="cats"></datalist>
+          <datalist id="roles"></datalist>
           <input type="file" id="photoFile" accept="image/*" hidden>
           <input type="file" id="photosBulk" accept="image/*" multiple hidden>
-          <p class="hint">Le champ catégorie est <b>libre</b> : U15F, Éducateur U11, Gardiens, Bureau, Casier n° 12… Le menu ne fait que proposer. <kbd>Entrée</kbd> ajoute la personne et garde la catégorie pour la suivante.</p>
+          <p class="hint">Catégorie et rôle sont <b>libres et facultatifs</b> : « SENIORS C » + « Capitaine », « U15F » + « Éducateur », « Bureau » + « Trésorier »… Sur l'étiquette, la catégorie est en pastille et le rôle en texte à côté. <kbd>Entrée</kbd> ajoute la personne et garde la catégorie pour la suivante.</p>
+          <div class="warn" id="hiddenWarn"></div>
           <details class="sub">
-            <summary>Suggestions du menu « catégorie »</summary>
-            <textarea id="catsList" rows="6" spellcheck="false" aria-label="Suggestions, une par ligne"></textarea>
-            <div class="tools" style="margin:6px 0 0"><button class="btn sm" type="button" id="btnCatsReset">Remettre la liste par défaut</button></div>
-            <p class="hint">Une suggestion par ligne : mets ici tes équipes et tes rôles pour aller plus vite. Les catégories déjà utilisées dans la liste sont proposées automatiquement.</p>
+            <summary>Suggestions des menus « catégorie » et « rôle »</summary>
+            <div class="grid2">
+              <div>
+                <span class="lbl">Catégories / équipes</span>
+                <textarea id="catsList" rows="7" spellcheck="false" aria-label="Suggestions de catégories, une par ligne"></textarea>
+              </div>
+              <div>
+                <span class="lbl">Rôles</span>
+                <textarea id="rolesList" rows="7" spellcheck="false" aria-label="Suggestions de rôles, une par ligne"></textarea>
+              </div>
+            </div>
+            <div class="tools" style="margin:6px 0 0"><button class="btn sm" type="button" id="btnCatsReset">Remettre les listes par défaut</button></div>
+            <p class="hint">Une suggestion par ligne. Ce que tu tapes reste libre ; ces listes servent juste à aller plus vite, et ce qui est déjà utilisé est proposé automatiquement.</p>
           </details>
           <div class="count"><span id="peopleCount">0 personne</span>
             <span class="tools" style="margin:0">
@@ -346,7 +370,6 @@
               <button class="btn sm danger" type="button" id="btnClear">Vider</button>
             </span>
           </div>
-          <div class="people-head" id="peopleHead"><span></span><span>Photo</span><span>Prénom</span><span>Nom</span><span>Catégorie</span><span></span></div>
           <div class="people" id="people"></div>
           <div class="photo-tools">
             <button class="btn block" type="button" id="btnPhotosBulk">Importer plusieurs photos d'un coup…</button>
@@ -412,13 +435,15 @@
 /* ---------------- Données ---------------- */
 var LS_KEY = 'etiquettes-casiers-v1';
 var FAMILY = '"Segoe UI", Roboto, "Helvetica Neue", Arial, "Liberation Sans", sans-serif';
-var DEFAULT_CATS = ['U6','U7','U8','U9','U10','U11','U12','U13','U13F','U14','U15','U15F','U16','U17','U18','U18F','U19','Seniors','Seniors F','Vétérans','Loisirs','Éducateur','Éducatrice','Dirigeant','Dirigeante','Arbitre','Staff','Bénévole'];
+var DEFAULT_CATS = ['U6','U7','U8','U9','U10','U11','U12','U13','U13F','U14','U15','U15F','U16','U17','U18','U18F','U19','Seniors','Seniors A','Seniors B','Seniors C','Seniors F','Vétérans','Loisirs','Futsal','École de foot','Bureau'];
+var DEFAULT_ROLES = ['Joueur','Joueuse','Capitaine','Gardien','Gardienne','Éducateur','Éducatrice','Responsable de catégorie','Dirigeant','Dirigeante','Arbitre','Président','Vice-président','Trésorier','Secrétaire','Bénévole','Apprenti','Stagiaire'];
 var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, band:{w:190,h:46} };
 var SWATCHES = ['#c8102e','#e30613','#0b3c8c','#1a7f3c','#f28c00','#111111','#6a1b9a','#00838f'];
 var DEFAULTS = {
   club:{ name:'ASI Mûrs-Érigné', logo:null, color:'#c8102e', bandText:'#ffffff', nameColor:'#161616' },
-  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', photo:false, photoEmpty:'frame', upper:true, showClub:true, showLogo:true, showCat:true, pageByCat:false, blank:0 },
+  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', photo:false, photoEmpty:'frame', upper:true, showClub:true, showLogo:true, showCat:true, showRole:true, pageByCat:false, blank:0 },
   cats: DEFAULT_CATS.slice(),
+  roles: DEFAULT_ROLES.slice(),
   people:[]
 };
 
@@ -440,9 +465,11 @@ function merge(def, obj){
   if (obj.club && typeof obj.club === 'object') for (var k in out.club) if (k in obj.club) out.club[k] = obj.club[k];
   if (obj.label && typeof obj.label === 'object') for (var j in out.label) if (j in obj.label) out.label[j] = obj.label[j];
   if (Array.isArray(obj.people)) out.people = obj.people.filter(function(p){ return p && typeof p === 'object'; })
-    .map(function(p){ return { id: String(p.id || uid()), first: String(p.first || ''), last: String(p.last || ''), cat: String(p.cat || ''),
+    .map(function(p){ return { id: String(p.id || uid()), first: String(p.first || ''), last: String(p.last || ''), cat: String(p.cat || ''), role: String(p.role || ''),
       photo: (typeof p.photo === 'string' && p.photo.indexOf('data:image/') === 0) ? p.photo : null }; });
   if (Array.isArray(obj.cats)) out.cats = obj.cats.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
+  if (Array.isArray(obj.roles)) out.roles = obj.roles.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
+  out.label.showRole = (out.label.showRole !== false);
   if (!/^(frame|blank)$/.test(out.label.photoEmpty)) out.label.photoEmpty = 'frame';
   out.label.photo = !!out.label.photo;
   /* garde-fous */
@@ -486,8 +513,14 @@ function loadFromLocal(){
   try { var raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch(e){}
   return null;
 }
+function withTimeout(p, ms){
+  return new Promise(function(res, rej){
+    var t = setTimeout(function(){ rej(new Error('délai dépassé')); }, ms);
+    p.then(function(v){ clearTimeout(t); res(v); }, function(e){ clearTimeout(t); rej(e); });
+  });
+}
 function loadState(){
-  return idbGet('state').then(function(s){ return s || loadFromLocal(); }, function(){ return loadFromLocal(); })
+  return withTimeout(idbGet('state'), 2500).then(function(s){ return s || loadFromLocal(); }, function(){ return loadFromLocal(); })
     .then(function(s){ return merge(DEFAULTS, s); });
 }
 var saveTimer = null;
@@ -538,8 +571,8 @@ function cmpName(a, b){
 
 /* Liste des étiquettes à imprimer (personnes + vierges) */
 function items(){
-  var list = state.people.filter(function(p){ return (String(p.first||'') + String(p.last||'') + String(p.cat||'')).trim() !== ''; });
-  var arr = list.map(function(p){ return { first:p.first, last:p.last, cat:p.cat, photo:p.photo || null }; });
+  var list = state.people.filter(function(p){ return (String(p.first||'') + String(p.last||'') + String(p.cat||'') + String(p.role||'')).trim() !== ''; });
+  var arr = list.map(function(p){ return { first:p.first, last:p.last, cat:p.cat, role:p.role || '', photo:p.photo || null }; });
   if (state.label.pageByCat) {
     arr = arr.map(function(p, i){ return { p:p, i:i }; })
       .sort(function(a, b){ return cmpCat(a.p.cat, b.p.cat) || (a.i - b.i); })
@@ -547,14 +580,14 @@ function items(){
   }
   for (var i = 0; i < state.label.blank; i++) arr.push({ blank:true });
   var example = false;
-  if (arr.length === 0) { arr.push({ first:'Prénom', last:'Nom', cat:'U15F', example:true }); example = true; }
+  if (arr.length === 0) { arr.push({ first:'Prénom', last:'Nom', cat:'U15F', role:'Rôle', example:true }); example = true; }
   return { list:arr, example:example };
 }
 
 function paginate(list, perPage){
   var pages = [], cur = [], lastCat = null, byCat = state.label.pageByCat;
   list.forEach(function(it){
-    var k = it.blank ? ' blank' : catKey(it.cat);
+    var k = it.blank ? '\u0000blank' : catKey(it.cat);
     if (cur.length >= perPage || (byCat && lastCat !== null && k !== lastCat && cur.length > 0)) { pages.push(cur); cur = []; }
     cur.push(it); lastCat = k;
   });
@@ -571,6 +604,7 @@ function labelHTML(it, x, y){
   var last = blank ? '' : String(it.last || '').trim();
   if (L.upper) last = upperFr(last);
   var cat = (blank || !L.showCat) ? '' : String(it.cat || '').trim();
+  var role = (blank || !L.showRole) ? '' : String(it.role || '').trim();
   var clubTxt = L.showClub ? upperFr(String(C.name || '').trim()) : '';
   var logo = (L.showLogo && C.logo) ? C.logo : null;
   var pad = clamp(Math.min(W, H) * 0.065, 1.5, 5);
@@ -595,10 +629,22 @@ function labelHTML(it, x, y){
   function names(fMax, lMax){
     firstFont = fitFont(first, fMax, contentW, 600, 0);
     lastFont = fitFont(last, lMax, contentW, 900, 0.02);
-    if (L.catStyle === 'text') catFont = fitFont(cat, H * 0.105, contentW, 800, 0.04, 2.6);
-    else { /* pastille : le texte + 0,85 em de marge de chaque côté doivent tenir dans la largeur */
-      var em = cat ? textEm(cat, 700, 0.03) * 1.03 + 1.75 : 1;
-      catFont = Math.max(2.6, Math.min(H * 0.10, contentW / em));
+    /* Ligne du bas : rôle (texte, à gauche) + catégorie (pastille, à droite) */
+    var emCat = 0, pillW = 0;
+    if (cat) {
+      if (L.catStyle === 'text') { emCat = textEm(cat, 800, 0.04) * 1.03; catFont = fitFont(cat, H * 0.105, contentW, 800, 0.04, 2.6); }
+      else { emCat = textEm(cat, 700, 0.03) * 1.03 + 1.75; catFont = Math.max(2.6, Math.min(H * 0.10, contentW / emCat)); } /* pastille : texte + 0,85 em de marge de chaque côté */
+      pillW = catFont * emCat;
+    }
+    var roleHTML = '';
+    if (role) {
+      var roleFont;
+      if (cat) { /* rôle + catégorie sur la même ligne : même taille pour les deux, réduite ensemble si la place manque */
+        var emRole = textEm(role, 700, 0.02) * 1.03;
+        var f = Math.max(2.6, Math.min(H * 0.10, (contentW - pad) / (emCat + emRole)));
+        catFont = Math.min(catFont, f); roleFont = f;
+      } else roleFont = fitFont(role, H * 0.10, contentW, 700, 0.02, 2.6);
+      roleHTML = '<div class="role" style="font-size:' + roleFont.toFixed(2) + 'mm">' + esc(role) + '</div>';
     }
     if (blank) {
       namesHTML = '<div class="names">' +
@@ -610,7 +656,8 @@ function labelHTML(it, x, y){
         (last ? '<div class="last" style="font-size:' + lastFont.toFixed(2) + 'mm">' + esc(last) + '</div>' : '') +
         '</div>';
     }
-    catHTML = cat ? '<div class="catrow"><span class="cat" style="font-size:' + catFont.toFixed(2) + 'mm">' + esc(cat) + '</span></div>' : '';
+    catHTML = (cat || role) ? '<div class="catrow" style="gap:' + pad.toFixed(2) + 'mm">' + roleHTML +
+      (cat ? '<span class="cat" style="font-size:' + catFont.toFixed(2) + 'mm">' + esc(cat) + '</span>' : '') + '</div>' : '';
   }
 
   if (L.layout === 'lateral') {
@@ -712,6 +759,18 @@ function render(){
     '<small>' + esc((its.example ? 1 : pages.length) + (pages.length > 1 && !its.example ? ' pages' : ' page') + ' · ' + g.perPage + ' par page (' + g.cols + ' × ' + g.rows + ')') + '</small>';
 
   document.getElementById('photoEmptyField').style.display = L.photo ? '' : 'none';
+
+  /* Prévenir si des infos saisies sont masquées par un réglage */
+  var hiddenCat = !L.showCat && state.people.some(function(p){ return String(p.cat || '').trim(); });
+  var hiddenRole = !L.showRole && state.people.some(function(p){ return String(p.role || '').trim(); });
+  var hw = document.getElementById('hiddenWarn');
+  if (hiddenCat || hiddenRole) {
+    var what = hiddenCat && hiddenRole ? 'Les catégories et les rôles ne s’affichent pas' : hiddenCat ? 'Les catégories ne s’affichent pas' : 'Les rôles ne s’affichent pas';
+    hw.innerHTML = esc(what) + ' sur les étiquettes : la case « Afficher… » correspondante est décochée dans « Taille et mise en page ». ' +
+      '<button class="btn sm" type="button" id="btnShowAll">Tout réafficher</button>';
+    hw.classList.add('show');
+    document.getElementById('btnShowAll').addEventListener('click', function(){ state.label.showCat = true; state.label.showRole = true; refreshBound(); save(); render(); });
+  } else { hw.classList.remove('show'); hw.innerHTML = ''; }
 
   var warn = document.getElementById('warnFit');
   if (!g.fits) { warn.textContent = 'L’étiquette (' + L.w + ' × ' + L.h + ' mm) dépasse la zone imprimable (' + g.uw + ' × ' + g.uh + ' mm avec cette marge).'; warn.classList.add('show'); }
@@ -891,40 +950,42 @@ photosBulk.addEventListener('change', function(){
 });
 
 /* ---------------- Personnes ---------------- */
-var inFirst = document.getElementById('inFirst'), inLast = document.getElementById('inLast'), inCat = document.getElementById('inCat');
+var inFirst = document.getElementById('inFirst'), inLast = document.getElementById('inLast'), inCat = document.getElementById('inCat'), inRole = document.getElementById('inRole');
 document.getElementById('addForm').addEventListener('submit', function(e){
   e.preventDefault();
-  var first = cap(inFirst.value), last = inLast.value.trim().replace(/\s+/g,' '), cat = inCat.value.trim();
+  var first = cap(inFirst.value), last = inLast.value.trim().replace(/\s+/g,' '), cat = inCat.value.trim(), role = inRole.value.trim();
   if (!first && !last) { inFirst.focus(); return; }
-  state.people.push({ id:uid(), first:first, last:last, cat:cat, photo:pendingPhoto });
+  state.people.push({ id:uid(), first:first, last:last, cat:cat, role:role, photo:pendingPhoto });
   pendingPhoto = null; refreshFormPhoto();
-  inFirst.value = ''; inLast.value = '';
+  inFirst.value = ''; inLast.value = ''; inRole.value = '';
   inFirst.focus();
   refreshCats(); renderPeople(); save(); scheduleRender();
 });
 
-function refreshCats(){
+function fillList(id, base, field){
   var all = [];
-  state.cats.forEach(function(c){ if (c && all.indexOf(c) < 0) all.push(c); });
-  state.people.forEach(function(p){ var c = String(p.cat || '').trim(); if (c && all.indexOf(c) < 0) all.push(c); });
-  document.getElementById('cats').innerHTML = all.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
+  base.forEach(function(c){ if (c && all.indexOf(c) < 0) all.push(c); });
+  state.people.forEach(function(p){ var c = String(p[field] || '').trim(); if (c && all.indexOf(c) < 0) all.push(c); });
+  document.getElementById(id).innerHTML = all.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
 }
-/* Liste de suggestions modifiable (une par ligne) */
-var catsList = document.getElementById('catsList');
-function refreshCatsList(){ if (document.activeElement !== catsList) catsList.value = state.cats.join('\n'); }
-catsList.addEventListener('input', function(){
-  state.cats = catsList.value.split('\n').map(function(c){ return c.trim(); }).filter(Boolean);
-  refreshCats(); save();
-});
+function refreshCats(){ fillList('cats', state.cats, 'cat'); fillList('roles', state.roles, 'role'); }
+/* Listes de suggestions modifiables (une par ligne) */
+var catsList = document.getElementById('catsList'), rolesList = document.getElementById('rolesList');
+function refreshCatsList(){
+  if (document.activeElement !== catsList) catsList.value = state.cats.join('\n');
+  if (document.activeElement !== rolesList) rolesList.value = state.roles.join('\n');
+}
+function linesOf(ta){ return ta.value.split('\n').map(function(c){ return c.trim(); }).filter(Boolean); }
+catsList.addEventListener('input', function(){ state.cats = linesOf(catsList); refreshCats(); save(); });
+rolesList.addEventListener('input', function(){ state.roles = linesOf(rolesList); refreshCats(); save(); });
 document.getElementById('btnCatsReset').addEventListener('click', function(){
-  state.cats = DEFAULT_CATS.slice(); refreshCatsList(); refreshCats(); save();
+  state.cats = DEFAULT_CATS.slice(); state.roles = DEFAULT_ROLES.slice(); refreshCatsList(); refreshCats(); save();
 });
 
 function renderPeople(){
   var box = document.getElementById('people');
   var n = state.people.length;
   document.getElementById('peopleCount').textContent = n + (n > 1 ? ' personnes' : ' personne');
-  document.getElementById('peopleHead').style.display = n ? '' : 'none';
   if (!n) { box.innerHTML = '<div class="empty">Aucune personne pour l’instant. Remplis le formulaire ci-dessus.</div>'; return; }
   box.innerHTML = state.people.map(function(p, i){
     return '<div class="prow" data-id="' + esc(p.id) + '">' +
@@ -934,7 +995,8 @@ function renderPeople(){
         '<button type="button" class="pdel" data-act="photodel" title="Retirer la photo">×</button></div>' +
       '<input type="text" data-f="first" value="' + esc(p.first) + '" placeholder="Prénom" aria-label="Prénom">' +
       '<input type="text" data-f="last" value="' + esc(p.last) + '" placeholder="Nom" aria-label="Nom">' +
-      '<input type="text" data-f="cat" list="cats" value="' + esc(p.cat) + '" placeholder="Catégorie…" aria-label="Catégorie">' +
+      '<input type="text" data-f="cat" list="cats" value="' + esc(p.cat) + '" placeholder="Catégorie / équipe" aria-label="Catégorie ou équipe">' +
+      '<input type="text" data-f="role" list="roles" value="' + esc(p.role || '') + '" placeholder="Rôle" aria-label="Rôle">' +
       '<button type="button" class="del" data-act="del" title="Supprimer">×</button>' +
     '</div>';
   }).join('');
@@ -946,7 +1008,7 @@ peopleBox.addEventListener('input', function(e){
   p[e.target.dataset.f] = e.target.value;
   save(); scheduleRender();
 });
-peopleBox.addEventListener('change', function(e){ if (e.target.dataset.f === 'cat') refreshCats(); });
+peopleBox.addEventListener('change', function(e){ if (e.target.dataset.f === 'cat' || e.target.dataset.f === 'role') refreshCats(); });
 peopleBox.addEventListener('click', function(e){
   var btn = e.target.closest('button[data-act]'); if (!btn) return;
   var row = btn.closest('.prow'), idx = state.people.findIndex(function(x){ return x.id === row.dataset.id; }); if (idx < 0) return;
