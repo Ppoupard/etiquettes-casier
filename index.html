@@ -264,18 +264,22 @@
               <option value="s">Petite — 63 × 38 mm (21 par page)</option>
               <option value="m">Moyenne — 95 × 55 mm (10 par page)</option>
               <option value="l">Grande — 95 × 69 mm (8 par page)</option>
+              <option value="xl">Très grande — 95 × 90 mm (6 par page)</option>
               <option value="band">Bande — 190 × 46 mm (6 par page)</option>
-              <option value="custom">Personnalisée</option>
+              <option value="wide">Pleine largeur — 190 × 90 mm (3 par page)</option>
+              <option value="half">Demi-page — 190 × 138 mm (2 par page)</option>
+              <option value="page">Pleine page — 190 × 277 mm (1 par page)</option>
+              <option value="custom">Personnalisée (largeur et hauteur ci-dessous)</option>
             </select>
           </div>
           <div class="grid2">
             <div class="field">
               <label for="lw">Largeur (mm)</label>
-              <input type="number" id="lw" data-bind="label.w" min="20" max="200" step="1">
+              <input type="number" id="lw" data-bind="label.w" min="20" max="210" step="1">
             </div>
             <div class="field">
               <label for="lh">Hauteur (mm)</label>
-              <input type="number" id="lh" data-bind="label.h" min="15" max="287" step="1">
+              <input type="number" id="lh" data-bind="label.h" min="15" max="297" step="1">
             </div>
             <div class="field">
               <label for="lgap">Espace entre étiquettes (mm)</label>
@@ -437,7 +441,7 @@ var LS_KEY = 'etiquettes-casiers-v1';
 var FAMILY = '"Segoe UI", Roboto, "Helvetica Neue", Arial, "Liberation Sans", sans-serif';
 var DEFAULT_CATS = ['U6','U7','U8','U9','U10','U11','U12','U13','U13F','U14','U15','U15F','U16','U17','U18','U18F','U19','Seniors','Seniors A','Seniors B','Seniors C','Seniors F','Vétérans','Loisirs','Futsal','École de foot','Bureau'];
 var DEFAULT_ROLES = ['Joueur','Joueuse','Capitaine','Gardien','Gardienne','Éducateur','Éducatrice','Responsable de catégorie','Dirigeant','Dirigeante','Arbitre','Président','Vice-président','Trésorier','Secrétaire','Bénévole','Apprenti','Stagiaire'];
-var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, band:{w:190,h:46} };
+var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, xl:{w:95,h:90}, band:{w:190,h:46}, wide:{w:190,h:90}, half:{w:190,h:138}, page:{w:190,h:277} };
 var SWATCHES = ['#c8102e','#e30613','#0b3c8c','#1a7f3c','#f28c00','#111111','#6a1b9a','#00838f'];
 var DEFAULTS = {
   club:{ name:'ASI Mûrs-Érigné', logo:null, color:'#c8102e', bandText:'#ffffff', nameColor:'#161616' },
@@ -474,8 +478,8 @@ function merge(def, obj){
   out.label.photo = !!out.label.photo;
   /* garde-fous */
   out.club.name = String(out.club.name || '');
-  out.label.w = clamp(num(out.label.w, 95), 20, 200);
-  out.label.h = clamp(num(out.label.h, 55), 15, 287);
+  out.label.w = clamp(num(out.label.w, 95), 20, 210);
+  out.label.h = clamp(num(out.label.h, 55), 15, 297);
   out.label.gap = clamp(num(out.label.gap, 0), 0, 30);
   out.label.margin = clamp(num(out.label.margin, 10), 0, 40);
   out.label.blank = clamp(Math.round(num(out.label.blank, 0)), 0, 200);
@@ -619,6 +623,7 @@ function labelHTML(it, x, y){
   function photoBlock(availH){
     if (!L.photo) return;
     var ph = Math.max(6, availH), pw = ph * 0.78;
+    if (pw > W * 0.42) { pw = W * 0.42; ph = pw / 0.78; } /* sur les très grandes étiquettes, la photo ne mange pas la place du nom */
     photoW = pw; photoGap = pad * 0.8;
     var src = (!blank && it.photo) ? it.photo : null;
     var pcls = 'photo' + (src ? '' : ' empty ' + (L.photoEmpty === 'blank' ? 'nothing' : 'frame'));
