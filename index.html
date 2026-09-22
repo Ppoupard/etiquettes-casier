@@ -191,12 +191,23 @@
   .lay-plein .wl{border-color:rgba(255,255,255,.7)}
   .page,.page *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
+  /* ---------- Fenêtre de cadrage ---------- */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal[hidden]{display:none}
+  .modal-box{background:#fff;border-radius:12px;padding:18px;width:min(440px,100%);max-height:100%;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+  .modal-box h2{margin:0 0 4px;font-size:16px}
+  .crop-stage{display:flex;justify-content:center;margin:12px 0;background:var(--soft);border-radius:8px;padding:10px}
+  #cropCanvas{touch-action:none;cursor:grab;border-radius:4px;box-shadow:0 0 0 1px var(--line);max-width:100%;max-height:60vh;background:#fff}
+  .crop-controls label{display:block;margin-bottom:8px;font-size:13px}
+  .crop-controls input[type=range]{width:100%;accent-color:var(--accent);margin-top:4px}
+  .modal-actions{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+
   /* ---------- Impression ---------- */
   @page{size:A4 portrait;margin:0}
   @media print{
     html,body{height:auto;overflow:visible;background:#fff}
     .app{display:block;height:auto;overflow:visible}
-    .sidebar,.topbar,.no-print,.page-tag,.example-hint{display:none!important}
+    .sidebar,.topbar,.no-print,.page-tag,.example-hint,.modal{display:none!important}
     .main{display:block;overflow:visible;height:auto}
     .preview{overflow:visible;height:auto;padding:0}
     .pages{--s:1!important;display:block;padding:0!important;gap:0}
@@ -333,6 +344,14 @@
               <option value="blank">Espace vide</option>
             </select>
           </div>
+          <div class="field">
+            <label for="photoSize">Taille des photos sur l'étiquette (personnes et matériel)</label>
+            <select id="photoSize" data-bind="label.photoSize">
+              <option value="1">Grande — toute la hauteur</option>
+              <option value="0.8">Moyenne</option>
+              <option value="0.6">Petite</option>
+            </select>
+          </div>
           <label class="check"><input type="checkbox" data-bind="label.upper"> Nom de famille en MAJUSCULES</label>
           <label class="check"><input type="checkbox" data-bind="label.showClub"> Afficher le nom du club</label>
           <label class="check"><input type="checkbox" data-bind="label.showLogo"> Afficher le logo</label>
@@ -396,7 +415,7 @@
           <div class="people" id="people"></div>
           <div class="photo-tools">
             <button class="btn block" type="button" id="btnPhotosBulk">Importer plusieurs photos d'un coup…</button>
-            <p class="hint">Nomme les fichiers « Prénom Nom.jpg » (ou « Nom Prénom ») : chaque photo est associée automatiquement à la bonne personne. Les photos sont recadrées au format portrait.</p>
+            <p class="hint">Nomme les fichiers « Prénom Nom.jpg » (ou « Nom Prénom », et « Ballons U15F.jpg » pour le matériel) : chaque photo est associée automatiquement. Clique ensuite sur une vignette pour recadrer (zoom, déplacement, photo entière).</p>
             <div class="status" id="photosStatus"></div>
           </div>
         </div>
@@ -413,17 +432,27 @@
             <input type="text" id="itDetail" placeholder="Détail (ex. Taille 4 · 12)" aria-label="Détail">
             <select id="itIcon" aria-label="Pictogramme"></select>
             <div class="form-photo">
-              <span>Pictogramme choisi automatiquement d'après l'intitulé. Pour une photo, clique sur le pictogramme de la ligne une fois ajoutée.</span>
+              <span>Pictogramme choisi d'après l'intitulé. Pour une photo, clique sur le pictogramme de la ligne : tu pourras la cadrer (zoom, déplacement) ou la montrer en entier.</span>
               <button class="btn primary" type="submit" style="margin-left:auto">Ajouter</button>
             </div>
           </form>
           <datalist id="itemNames"></datalist>
-          <div class="field" style="margin-top:10px">
-            <label for="itemNoPhoto">Étiquette matériel sans photo</label>
-            <select id="itemNoPhoto" data-bind="label.itemNoPhoto">
-              <option value="icon">Pictogramme</option>
-              <option value="frame">Cadre vide en pointillés (pour coller une photo)</option>
-            </select>
+          <div class="grid2" style="margin-top:10px">
+            <div class="field">
+              <label for="itemNoPhoto">Matériel sans photo</label>
+              <select id="itemNoPhoto" data-bind="label.itemNoPhoto">
+                <option value="icon">Pictogramme</option>
+                <option value="frame">Cadre vide en pointillés</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="itemPhotoRatio">Format des photos matériel</label>
+              <select id="itemPhotoRatio" data-bind="label.itemPhotoRatio">
+                <option value="portrait">Portrait</option>
+                <option value="square">Carré</option>
+                <option value="landscape">Paysage</option>
+              </select>
+            </div>
           </div>
           <details class="sub" open>
             <summary>Créer d'un coup pour plusieurs catégories</summary>
@@ -502,6 +531,25 @@ Gourdes</textarea>
   </main>
 </div>
 
+<!-- Fenêtre de cadrage des photos -->
+<div class="modal" id="cropModal" hidden>
+  <div class="modal-box" role="dialog" aria-label="Cadrer la photo">
+    <h2>Cadrer la photo</h2>
+    <p class="hint" style="margin:0">Fais glisser la photo pour la déplacer, zoome avec le curseur ou la molette. Le cadre correspond exactement à ce qui sera imprimé.</p>
+    <div class="crop-stage"><canvas id="cropCanvas" width="300" height="385"></canvas></div>
+    <div class="crop-controls">
+      <label>Zoom <input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1"></label>
+      <label class="check" style="padding:0"><input type="checkbox" id="cropFit"> Montrer la photo entière, sans la couper (bandes blanches)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" type="button" id="cropChange">Choisir une autre photo…</button>
+      <span style="flex:1"></span>
+      <button class="btn" type="button" id="cropCancel">Annuler</button>
+      <button class="btn primary" type="button" id="cropOk">Valider</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -554,7 +602,7 @@ var PRESETS = { s:{w:63,h:38}, m:{w:95,h:55}, l:{w:95,h:69}, xl:{w:95,h:90}, ban
 var SWATCHES = ['#c8102e','#e30613','#0b3c8c','#1a7f3c','#f28c00','#111111','#6a1b9a','#00838f'];
 var DEFAULTS = {
   club:{ name:'ASI Mûrs-Érigné', logo:null, color:'#c8102e', bandText:'#ffffff', nameColor:'#161616' },
-  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', photo:false, photoEmpty:'frame', itemNoPhoto:'icon', upper:true, showClub:true, showLogo:true, showCat:true, showRole:true, pageByCat:false, blank:0, print:'all' },
+  label:{ preset:'m', w:95, h:55, gap:0, margin:10, cuts:true, layout:'bandeau', catStyle:'pill', photo:false, photoEmpty:'frame', photoSize:1, itemNoPhoto:'icon', itemPhotoRatio:'portrait', upper:true, showClub:true, showLogo:true, showCat:true, showRole:true, pageByCat:false, blank:0, print:'all' },
   cats: DEFAULT_CATS.slice(),
   roles: DEFAULT_ROLES.slice(),
   people:[],
@@ -574,6 +622,8 @@ function cap(s){
 }
 
 function capFirst(s){ s = String(s || '').trim().replace(/\s+/g, ' '); return s ? s.charAt(0).toLocaleUpperCase('fr') + s.slice(1) : s; }
+function dataImg(v){ return (typeof v === 'string' && v.indexOf('data:image/') === 0) ? v : null; }
+function cropObj(c){ return (c && typeof c === 'object') ? { z:clamp(num(c.z, 1), 1, 6), x:clamp(num(c.x, 0.5), 0, 1), y:clamp(num(c.y, 0.5), 0, 1), fit:!!c.fit } : null; }
 function merge(def, obj){
   var out = JSON.parse(JSON.stringify(def));
   if (!obj || typeof obj !== 'object') return out;
@@ -581,16 +631,18 @@ function merge(def, obj){
   if (obj.label && typeof obj.label === 'object') for (var j in out.label) if (j in obj.label) out.label[j] = obj.label[j];
   if (Array.isArray(obj.people)) out.people = obj.people.filter(function(p){ return p && typeof p === 'object'; })
     .map(function(p){ return { id: String(p.id || uid()), first: String(p.first || ''), last: String(p.last || ''), cat: String(p.cat || ''), role: String(p.role || ''),
-      photo: (typeof p.photo === 'string' && p.photo.indexOf('data:image/') === 0) ? p.photo : null }; });
+      photo: dataImg(p.photo), photoSrc: dataImg(p.photoSrc), photoCrop: cropObj(p.photoCrop) }; });
   if (Array.isArray(obj.cats)) out.cats = obj.cats.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
   if (Array.isArray(obj.roles)) out.roles = obj.roles.map(function(c){ return String(c || '').trim(); }).filter(Boolean);
   if (Array.isArray(obj.items)) out.items = obj.items.filter(function(p){ return p && typeof p === 'object'; })
     .map(function(p){ return { id: String(p.id || uid()), title: String(p.title || ''), cat: String(p.cat || ''), detail: String(p.detail || ''),
       icon: (ICON_ORDER.indexOf(p.icon) >= 0) ? p.icon : 'auto',
-      photo: (typeof p.photo === 'string' && p.photo.indexOf('data:image/') === 0) ? p.photo : null }; });
+      photo: dataImg(p.photo), photoSrc: dataImg(p.photoSrc), photoCrop: cropObj(p.photoCrop) }; });
   out.label.showRole = (out.label.showRole !== false);
   if (!/^(all|people|items)$/.test(out.label.print)) out.label.print = 'all';
   if (!/^(icon|frame)$/.test(out.label.itemNoPhoto)) out.label.itemNoPhoto = 'icon';
+  if (!/^(portrait|square|landscape)$/.test(out.label.itemPhotoRatio)) out.label.itemPhotoRatio = 'portrait';
+  out.label.photoSize = clamp(num(out.label.photoSize, 1), 0.4, 1);
   if (!/^(frame|blank)$/.test(out.label.photoEmpty)) out.label.photoEmpty = 'frame';
   out.label.photo = !!out.label.photo;
   /* garde-fous */
@@ -763,8 +815,9 @@ function labelHTML(it, x, y){
       if (!L.photo) return;
       emptyStyle = (L.photoEmpty === 'blank') ? 'nothing' : 'frame';
     }
-    var ph = Math.max(6, availH), pw = ph * 0.78;
-    if (pw > W * 0.42) { pw = W * 0.42; ph = pw / 0.78; } /* sur les très grandes étiquettes, la photo ne mange pas la place du nom */
+    var ratio = isItem ? itemRatio() : 0.78;
+    var ph = Math.max(6, availH * clamp(num(L.photoSize, 1), 0.4, 1)), pw = ph * ratio;
+    if (pw > W * 0.42) { pw = W * 0.42; ph = pw / ratio; } /* sur les très grandes étiquettes, la photo ne mange pas la place du nom */
     photoW = pw; photoGap = pad * 0.8;
     var pcls = 'photo' + (src ? '' : ' empty ' + emptyStyle);
     photoHTML = '<div class="' + pcls + '" style="width:' + pw.toFixed(2) + 'mm;height:' + ph.toFixed(2) + 'mm;margin-right:' + photoGap.toFixed(2) + 'mm">' +
@@ -978,6 +1031,7 @@ bound.forEach(function(el){
   if (el.type === 'number') el.addEventListener('blur', refreshBound);
 });
 function onSetting(key){
+  if (key === 'label.itemPhotoRatio') rerenderItemPhotos();
   if (key === 'label.preset') {
     var pr = PRESETS[state.label.preset];
     if (pr) { state.label.w = pr.w; state.label.h = pr.h; state.label.gap = 0; }
@@ -1029,63 +1083,162 @@ function refreshLogo(){
 
 /* ---------------- Photos des personnes ---------------- */
 var CAM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3"/></svg>';
-/* Recadre la photo en portrait 3:4 et la réduit (360 × 480 px, JPEG) pour rester légère */
-function processPhoto(file, bias){
-  if (bias == null) bias = 0.3;
+function loadImage(src){
+  return new Promise(function(res, rej){ var im = new Image(); im.onload = function(){ res(im); }; im.onerror = function(){ rej(new Error('image illisible')); }; im.src = src; });
+}
+/* Lit un fichier image et le réduit (côté max 1000 px) : c'est l'original conservé pour pouvoir recadrer plus tard */
+function fileToDataURL(file, maxPx){
   return new Promise(function(res, rej){
     var reader = new FileReader();
     reader.onload = function(){
-      var img = new Image();
-      img.onload = function(){
-        try {
-          var TW = 360, TH = 480, ratio = TW / TH;
-          var sw = img.naturalWidth, sh = img.naturalHeight;
-          if (!sw || !sh) return rej(new Error('image vide'));
-          var cw = sw, ch = sh;
-          if (sw / sh > ratio) cw = Math.round(sh * ratio); else ch = Math.round(sw / ratio);
-          var sx = Math.round((sw - cw) / 2), sy = Math.round((sh - ch) * bias); /* personnes : cadrage un peu vers le haut (visages) ; matériel : centré */
-          var sc = Math.min(1, TW / cw);
-          var cv = document.createElement('canvas');
-          cv.width = Math.max(1, Math.round(cw * sc)); cv.height = Math.max(1, Math.round(ch * sc));
-          var ctx = cv.getContext('2d');
-          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
-          ctx.drawImage(img, sx, sy, cw, ch, 0, 0, cv.width, cv.height);
-          res(cv.toDataURL('image/jpeg', 0.85));
-        } catch(err) { rej(err); }
-      };
-      img.onerror = function(){ rej(new Error('image illisible')); };
-      img.src = reader.result;
+      loadImage(reader.result).then(function(img){
+        var sc = Math.min(1, maxPx / Math.max(img.naturalWidth, img.naturalHeight));
+        var cv = document.createElement('canvas');
+        cv.width = Math.max(1, Math.round(img.naturalWidth * sc)); cv.height = Math.max(1, Math.round(img.naturalHeight * sc));
+        var ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        res(cv.toDataURL('image/jpeg', 0.86));
+      }, rej);
     };
     reader.onerror = function(){ rej(reader.error); };
     reader.readAsDataURL(file);
   });
 }
-var photoFile = document.getElementById('photoFile'), photoTarget = null, pendingPhoto = null;
+/* Dessine la photo selon le cadrage : zoom z (≥ 1), point de l'image (x, y en 0–1) placé au centre, ou « fit » = photo entière sur fond blanc */
+function drawCrop(ctx, img, cw, ch, crop){
+  var iw = img.naturalWidth, ih = img.naturalHeight;
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cw, ch);
+  if (crop.fit) {
+    var s = Math.min(cw / iw, ch / ih), dw = iw * s, dh = ih * s;
+    ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    return;
+  }
+  var z = clamp(num(crop.z, 1), 1, 6), sc = Math.max(cw / iw, ch / ih) * z;
+  var vw = cw / sc, vh = ch / sc;
+  var px = clamp(num(crop.x, 0.5) * iw, vw / 2, iw - vw / 2), py = clamp(num(crop.y, 0.5) * ih, vh / 2, ih - vh / 2);
+  ctx.drawImage(img, px - vw / 2, py - vh / 2, vw, vh, 0, 0, cw, ch);
+}
+function renderCrop(img, ratio, crop, outW){
+  var cv = document.createElement('canvas'); cv.width = outW; cv.height = Math.round(outW / ratio);
+  drawCrop(cv.getContext('2d'), img, cv.width, cv.height, crop);
+  return cv.toDataURL('image/jpeg', 0.85);
+}
+function itemRatio(){ return { portrait:0.78, square:1, landscape:1.33 }[state.label.itemPhotoRatio] || 0.78; }
+function isItemTarget(t){ return String(t).indexOf('item:') === 0; }
+function ratioFor(target){ return isItemTarget(target) ? itemRatio() : 0.78; }
+function defaultCrop(target){ return isItemTarget(target) ? { z:1, x:0.5, y:0.5, fit:false } : { z:1, x:0.5, y:0.42, fit:false }; }
+function entryFor(target){
+  if (target === 'form') return pendingPhoto;
+  if (isItemTarget(target)) return state.items.find(function(x){ return x.id === target.slice(5); });
+  return state.people.find(function(x){ return x.id === target; });
+}
+function applyPhoto(target, data){ /* data : { photo, photoSrc, photoCrop } ou null pour retirer */
+  if (target === 'form') { pendingPhoto = data; refreshFormPhoto(); return; }
+  var e = entryFor(target); if (!e) return;
+  e.photo = data ? data.photo : null; e.photoSrc = data ? data.photoSrc : null; e.photoCrop = data ? data.photoCrop : null;
+  if (isItemTarget(target)) renderItems(); else renderPeople();
+  save(); scheduleRender();
+}
+
+/* Fenêtre de cadrage : glisser pour déplacer, curseur ou molette pour zoomer, ou photo entière */
+var cropUI = { modal: document.getElementById('cropModal'), canvas: document.getElementById('cropCanvas'), zoom: document.getElementById('cropZoom'), fit: document.getElementById('cropFit'), change: document.getElementById('cropChange') };
+var cropSession = null;
+function openCrop(src, ratio, crop, allowChange){
+  return loadImage(src).then(function(img){
+    return new Promise(function(resolve){
+      var c = { z:1, x:0.5, y:0.5, fit:false };
+      if (crop) for (var k in c) if (crop[k] != null) c[k] = crop[k];
+      cropSession = { img:img, ratio:ratio, crop:c, resolve:resolve };
+      cropUI.canvas.width = 300; cropUI.canvas.height = Math.round(300 / ratio);
+      cropUI.zoom.value = c.z; cropUI.fit.checked = !!c.fit;
+      cropUI.change.style.display = allowChange ? '' : 'none';
+      cropUI.modal.hidden = false;
+      drawCropPreview();
+    });
+  });
+}
+function drawCropPreview(){
+  if (!cropSession) return;
+  var cv = cropUI.canvas;
+  drawCrop(cv.getContext('2d'), cropSession.img, cv.width, cv.height, cropSession.crop);
+  cropUI.zoom.disabled = !!cropSession.crop.fit;
+  cv.style.cursor = cropSession.crop.fit ? 'default' : 'grab';
+}
+function closeCrop(result){ cropUI.modal.hidden = true; var s = cropSession; cropSession = null; if (s) s.resolve(result); }
+cropUI.zoom.addEventListener('input', function(){ if (cropSession) { cropSession.crop.z = parseFloat(cropUI.zoom.value) || 1; drawCropPreview(); } });
+cropUI.fit.addEventListener('change', function(){ if (cropSession) { cropSession.crop.fit = cropUI.fit.checked; drawCropPreview(); } });
+document.getElementById('cropCancel').addEventListener('click', function(){ closeCrop(null); });
+document.getElementById('cropOk').addEventListener('click', function(){
+  var s = cropSession; if (!s) return;
+  closeCrop({ crop: s.crop, photo: renderCrop(s.img, s.ratio, s.crop, 360) });
+});
+cropUI.change.addEventListener('click', function(){ closeCrop({ change:true }); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && cropSession) closeCrop(null); });
+var cropDrag = null;
+cropUI.canvas.addEventListener('pointerdown', function(e){
+  if (!cropSession || cropSession.crop.fit) return;
+  cropDrag = { x:e.clientX, y:e.clientY }; cropUI.canvas.setPointerCapture(e.pointerId); cropUI.canvas.style.cursor = 'grabbing'; e.preventDefault();
+});
+cropUI.canvas.addEventListener('pointermove', function(e){
+  if (!cropDrag || !cropSession) return;
+  var cv = cropUI.canvas, img = cropSession.img, c = cropSession.crop, iw = img.naturalWidth, ih = img.naturalHeight;
+  var sc = Math.max(cv.width / iw, cv.height / ih) * clamp(num(c.z, 1), 1, 6), vw = cv.width / sc, vh = cv.height / sc;
+  var k = cv.width / cv.getBoundingClientRect().width; /* le canvas peut être affiché réduit sur petit écran */
+  var dx = (e.clientX - cropDrag.x) * k, dy = (e.clientY - cropDrag.y) * k;
+  cropDrag = { x:e.clientX, y:e.clientY };
+  c.x = clamp(num(c.x, 0.5) - dx / (sc * iw), vw / 2 / iw, 1 - vw / 2 / iw);
+  c.y = clamp(num(c.y, 0.5) - dy / (sc * ih), vh / 2 / ih, 1 - vh / 2 / ih);
+  drawCropPreview();
+});
+function endDrag(){ cropDrag = null; if (cropSession && !cropSession.crop.fit) cropUI.canvas.style.cursor = 'grab'; }
+cropUI.canvas.addEventListener('pointerup', endDrag); cropUI.canvas.addEventListener('pointercancel', endDrag);
+cropUI.canvas.addEventListener('wheel', function(e){
+  if (!cropSession || cropSession.crop.fit) return;
+  e.preventDefault();
+  cropSession.crop.z = clamp(num(cropSession.crop.z, 1) + (e.deltaY < 0 ? 0.15 : -0.15), 1, 4);
+  cropUI.zoom.value = cropSession.crop.z; drawCropPreview();
+}, { passive:false });
+
+/* Quand le format des photos matériel change, on les regénère depuis l'original avec le même cadrage */
+function rerenderItemPhotos(){
+  var ratio = itemRatio(), todo = state.items.filter(function(p){ return p.photoSrc; });
+  if (!todo.length) return;
+  Promise.all(todo.map(function(p){
+    return loadImage(p.photoSrc).then(function(img){ p.photo = renderCrop(img, ratio, p.photoCrop || defaultCrop('item:'), 360); }, function(){});
+  })).then(function(){ renderItems(); save(); scheduleRender(); });
+}
+var photoFile = document.getElementById('photoFile'), photoTarget = null, pendingPhoto = null; /* pendingPhoto : { photo, photoSrc, photoCrop } pour le formulaire */
 function pickPhoto(target){ photoTarget = target; photoFile.value = ''; photoFile.click(); }
+function startPhoto(target){ var e = entryFor(target); if (e && e.photo) editPhoto(target); else pickPhoto(target); }
+function editPhoto(target){
+  var e = entryFor(target); if (!e || !e.photo) return;
+  var src = e.photoSrc || e.photo;
+  openCrop(src, ratioFor(target), e.photoCrop || defaultCrop(target), true).then(function(r){
+    if (!r) return;
+    if (r.change) return pickPhoto(target);
+    applyPhoto(target, { photo:r.photo, photoSrc:src, photoCrop:r.crop });
+  });
+}
 photoFile.addEventListener('change', function(){
-  var f = photoFile.files && photoFile.files[0]; if (!f) return;
-  var isItemTarget = String(photoTarget).indexOf('item:') === 0;
-  processPhoto(f, isItemTarget ? 0.5 : 0.3).then(function(d){
-    if (photoTarget === 'form') { pendingPhoto = d; refreshFormPhoto(); return; }
-    if (isItemTarget) {
-      var itm = state.items.find(function(x){ return x.id === photoTarget.slice(5); }); if (!itm) return;
-      itm.photo = d; renderItems(); save(); scheduleRender(); return;
-    }
-    var p = state.people.find(function(x){ return x.id === photoTarget; }); if (!p) return;
-    p.photo = d; renderPeople(); save(); scheduleRender();
+  var f = photoFile.files && photoFile.files[0], target = photoTarget; if (!f) return;
+  fileToDataURL(f, 1000).then(function(src){
+    return openCrop(src, ratioFor(target), defaultCrop(target), false).then(function(r){
+      if (r) applyPhoto(target, { photo:r.photo, photoSrc:src, photoCrop:r.crop });
+    });
   }, function(){ setStatus('Cette image n’a pas pu être lue.', true); });
 });
 function refreshFormPhoto(){
   var wrap = document.getElementById('formPhotoWrap'), btn = document.getElementById('formPhotoBtn');
   wrap.classList.toggle('has', !!pendingPhoto); btn.classList.toggle('has', !!pendingPhoto);
-  btn.innerHTML = pendingPhoto ? '<img src="' + pendingPhoto + '" alt="">' : CAM_SVG;
+  btn.innerHTML = pendingPhoto ? '<img src="' + pendingPhoto.photo + '" alt="">' : CAM_SVG;
+  btn.title = pendingPhoto ? 'Recadrer ou changer la photo' : 'Choisir une photo';
 }
-document.getElementById('formPhotoBtn').addEventListener('click', function(){ pickPhoto('form'); });
+document.getElementById('formPhotoBtn').addEventListener('click', function(){ startPhoto('form'); });
 document.getElementById('formPhotoDel').addEventListener('click', function(){ pendingPhoto = null; refreshFormPhoto(); });
 function setStatus(msg, err){ var s = document.getElementById('photosStatus'); s.textContent = msg; s.className = 'status' + (err ? ' err' : ''); }
 
 /* Import groupé : le nom du fichier (« Prénom Nom », « Nom Prénom », « Nom ») désigne la personne */
-function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 function nameIndex(){
   var idx = {}, count = {};
   function add(key, v){ if (!key) return; count[key] = (count[key] || 0) + 1; idx[key] = v; }
@@ -1114,7 +1267,11 @@ photosBulk.addEventListener('change', function(){
     return chain.then(function(){
       var v = idx[norm(f.name.replace(/\.[^.]+$/, ''))];
       if (!v) { bad.push(f.name); return; }
-      return processPhoto(f, v.item ? 0.5 : 0.3).then(function(d){ v.p.photo = d; ok++; }, function(){ bad.push(f.name); });
+      var t = v.item ? 'item:' + v.p.id : v.p.id;
+      return fileToDataURL(f, 1000).then(function(src){ return loadImage(src).then(function(img){
+        var crop = defaultCrop(t);
+        v.p.photo = renderCrop(img, ratioFor(t), crop, 360); v.p.photoSrc = src; v.p.photoCrop = crop; ok++;
+      }); }, function(){ bad.push(f.name); });
     });
   }, Promise.resolve()).then(function(){
     renderPeople(); renderItems(); save(); scheduleRender();
@@ -1129,7 +1286,7 @@ document.getElementById('addForm').addEventListener('submit', function(e){
   e.preventDefault();
   var first = cap(inFirst.value), last = inLast.value.trim().replace(/\s+/g,' '), cat = inCat.value.trim(), role = inRole.value.trim();
   if (!first && !last) { inFirst.focus(); return; }
-  state.people.push({ id:uid(), first:first, last:last, cat:cat, role:role, photo:pendingPhoto });
+  state.people.push({ id:uid(), first:first, last:last, cat:cat, role:role, photo:pendingPhoto ? pendingPhoto.photo : null, photoSrc:pendingPhoto ? pendingPhoto.photoSrc : null, photoCrop:pendingPhoto ? pendingPhoto.photoCrop : null });
   pendingPhoto = null; refreshFormPhoto();
   inFirst.value = ''; inLast.value = ''; inRole.value = '';
   inFirst.focus();
@@ -1191,8 +1348,8 @@ peopleBox.addEventListener('click', function(e){
   var btn = e.target.closest('button[data-act]'); if (!btn) return;
   var row = btn.closest('.prow'), idx = state.people.findIndex(function(x){ return x.id === row.dataset.id; }); if (idx < 0) return;
   var act = btn.dataset.act;
-  if (act === 'photo') { pickPhoto(state.people[idx].id); return; }
-  if (act === 'photodel') state.people[idx].photo = null;
+  if (act === 'photo') { startPhoto(state.people[idx].id); return; }
+  if (act === 'photodel') { applyPhoto(state.people[idx].id, null); return; }
   else if (act === 'del') state.people.splice(idx, 1);
   else if (act === 'up' && idx > 0) { var a = state.people[idx-1]; state.people[idx-1] = state.people[idx]; state.people[idx] = a; }
   else if (act === 'down' && idx < state.people.length - 1) { var b = state.people[idx+1]; state.people[idx+1] = state.people[idx]; state.people[idx] = b; }
@@ -1269,8 +1426,8 @@ itemsBox.addEventListener('click', function(e){
   var btn = e.target.closest('button[data-act]'); if (!btn) return;
   var row = btn.closest('.prow'), idx = state.items.findIndex(function(x){ return x.id === row.dataset.id; }); if (idx < 0) return;
   var act = btn.dataset.act;
-  if (act === 'photo') { pickPhoto('item:' + state.items[idx].id); return; }
-  if (act === 'photodel') state.items[idx].photo = null;
+  if (act === 'photo') { startPhoto('item:' + state.items[idx].id); return; }
+  if (act === 'photodel') { applyPhoto('item:' + state.items[idx].id, null); return; }
   else if (act === 'del') state.items.splice(idx, 1);
   else if (act === 'up' && idx > 0) { var a = state.items[idx-1]; state.items[idx-1] = state.items[idx]; state.items[idx] = a; }
   else if (act === 'down' && idx < state.items.length - 1) { var b2 = state.items[idx+1]; state.items[idx+1] = state.items[idx]; state.items[idx] = b2; }
